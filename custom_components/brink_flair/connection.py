@@ -19,7 +19,7 @@ def params_from_data(data: Mapping[str, Any]) -> ModbusTcpParams | ModbusSerialP
             device=data[CONF_DEVICE],
             baudrate=data[CONF_BAUDRATE],
             bytesize=8,
-            parity="e",
+            parity="E",
             stopbits=1,
             framer="rtu",
         )
