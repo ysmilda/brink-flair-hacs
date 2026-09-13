@@ -9,14 +9,13 @@ reloads when the connection drops so it re-borrows a unit on the rebuilt
 connection.
 """
 
-from .brink_flair_modbus import BrinkFlair
-
 from homeassistant.components.modbus import async_get_unit
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
+from .brink_flair_modbus import BrinkFlair
 from .connection import params_from_data
-from .const import CONF_UNIT_ID
+from .const import CONF_MODEL, CONF_UNIT_ID
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 
 PLATFORMS = [
@@ -40,7 +39,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: BrinkConfigEntry) -> boo
     unit = async_get_unit(
         hass, entry, params_from_data(entry.data), int(entry.data[CONF_UNIT_ID])
     )
-    device = BrinkFlair(unit)
+    device = BrinkFlair(unit, model_override=entry.data.get(CONF_MODEL))
     coordinator = BrinkCoordinator(hass, entry, device)
 
     await coordinator.async_config_entry_first_refresh()

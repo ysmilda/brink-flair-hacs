@@ -3,15 +3,11 @@
 from collections.abc import Mapping
 from typing import Any
 
-from modbus_connection import ModbusSerialParams, ModbusTcpParams
-
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
+from modbus_connection import ModbusSerialParams, ModbusTcpParams
 
 from .const import (
     CONF_BAUDRATE,
-    CONF_BYTESIZE,
-    CONF_PARITY,
-    CONF_STOPBITS,
     CONNECTION_SERIAL,
 )
 
@@ -22,9 +18,9 @@ def params_from_data(data: Mapping[str, Any]) -> ModbusTcpParams | ModbusSerialP
         return ModbusSerialParams(
             device=data[CONF_DEVICE],
             baudrate=data[CONF_BAUDRATE],
-            bytesize=data[CONF_BYTESIZE],
-            parity=data[CONF_PARITY],
-            stopbits=data[CONF_STOPBITS],
+            bytesize=8,
+            parity="e",
+            stopbits=1,
             framer="rtu",
         )
     return ModbusTcpParams(host=data[CONF_HOST], port=data[CONF_PORT])

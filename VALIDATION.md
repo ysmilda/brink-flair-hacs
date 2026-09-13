@@ -27,8 +27,10 @@ The reference project also documents the unit-side settings:
 ## Pre-flight
 
 1. Confirm the gateway answers: read register `4004` and expect the device
-   type (200/225/300/325/400/450/600). For a Flair 300:
-   `pymodbus` or `modpoll -r 4004 -c 1 -0 -1 20 <gw>` should print `300`.
+   type. Register 4004 is an opaque device-type code, not the model number
+   (a Flair 300 reports `24`); the integration maps the code to a model.
+   For a Flair 300: `pymodbus` or `modpoll -r 4004 -c 1 -0 -1 20 <gw>` should
+   print `24`.
 2. In Home Assistant, **Settings → Devices & Services → Add Integration →
    Brink Flair** → Modbus TCP → gateway address/port, slave address 20.
 3. The created device should show `Brink Flair 300` (manufacturer *Brink*).
@@ -37,7 +39,7 @@ The reference project also documents the unit-side settings:
 
 | Register | Entity | Raw example | Decoded |
 |---:|---|---:|---:|
-| 4004 | (device) | 300 | model 300 |
+| 4004 | (device) | 24 | device type 24 → model 300 |
 | 4020 | sensor.…_operating_mode | 12 | `auto_modbus` |
 | 4032 | sensor.…_supply_volume_flow | 149 | 149 m³/h |
 | 4036 | sensor.…_supply_temperature | 215 | 21.5 °C |

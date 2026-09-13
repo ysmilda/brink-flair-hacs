@@ -4,13 +4,12 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import override
 
-from .brink_flair_modbus import BypassMode, ControlMode, VentilationLevel
-
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .brink_flair_modbus import BypassMode, ControlMode, VentilationLevel
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 

@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 from modbus_connection import ModbusError
 from modbus_connection.model import Component, ComponentGroup
 
-from .flow_limits import FlowLimits, flow_limits_for
+from .device_types import model_name_for_device_type
+from .flow_limits import FlowLimits, flow_limits_for, flow_limits_for_model
 from .subsystems import (
     DeviceInformation,
     Measurements,
@@ -30,25 +31,32 @@ class BrinkProbe:
     @property
     def model_name(self) -> str:
         """Return the user-facing model name."""
-        if self.device_type is None:
-            return "Brink Flair"
-        return f"Brink Flair {self.device_type}"
+        return model_name_for_device_type(self.device_type)
 
 
 class BrinkFlair:
     """A Brink Flair ventilation unit."""
 
-    def __init__(self, unit: ModbusUnit) -> None:
+    def __init__(
+        self, unit: ModbusUnit, *, model_override: int | None = None
+    ) -> None:
+        """Initialize the device.
+
+        ``model_override`` pins the model when the reported device type is not
+        mapped yet (the config flow collects it from the user); it overrides
+        both the display name and the airflow envelope.
+        """
         self._unit = unit
-        self.info = DeviceInformation(unit)
+        self._model_override = model_override
+        self.info = DeviceInformation(unit, model_override=model_override)
         self.measurements = Measurements(unit)
         self.status = Status(unit)
         self.settings = Settings(unit)
         self._group = ComponentGroup(unit, self.components)
         self._reset_filter_pending = False
 
-    @classmethod
-    async def async_probe(cls, unit: ModbusUnit) -> BrinkProbe:
+    @staticmethod
+    async def async_probe(unit: ModbusUnit) -> BrinkProbe:
         """Read only the identity register needed for setup."""
         try:
             (device_type,) = await unit.read_input_registers(4004, 1)
@@ -64,6 +72,8 @@ class BrinkFlair:
     @property
     def flow_limits(self) -> FlowLimits:
         """Return the airflow envelope for the unit's reported model."""
+        if self._model_override is not None:
+            return flow_limits_for_model(self._model_override)
         return flow_limits_for(self.info.device_type)
 
     @property

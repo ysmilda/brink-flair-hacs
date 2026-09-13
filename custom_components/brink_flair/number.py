@@ -3,8 +3,6 @@
 from dataclasses import dataclass
 from typing import override
 
-from .brink_flair_modbus import FlowLimits
-
 from homeassistant.components.number import (
     NumberDeviceClass,
     NumberEntity,
@@ -19,6 +17,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .brink_flair_modbus import FlowLimits
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 

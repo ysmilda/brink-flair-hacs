@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from .device_types import model_for_device_type
+
 
 @dataclass(frozen=True)
 class FlowLimits:
@@ -31,6 +33,9 @@ _FLOW_LIMITS: dict[int, FlowLimits] = {
     600: FlowLimits(600, 600),
 }
 
+#: Every Flair model the integration knows how to configure.
+SUPPORTED_MODELS: tuple[int, ...] = tuple(_FLOW_LIMITS)
+
 #: Full-scale bounds a register write is allowed to reach on any model.
 MAX_FLOW = 600
 MAX_MODBUS_FLOW_RATE = 600
@@ -40,12 +45,20 @@ MAX_MODBUS_FLOW_RATE = 600
 DEFAULT_FLOW_LIMITS = FlowLimits(300, 280)
 
 
+def flow_limits_for_model(model: int) -> FlowLimits:
+    """Return the airflow envelope for a Flair model number."""
+    return _FLOW_LIMITS.get(model, DEFAULT_FLOW_LIMITS)
+
+
 def flow_limits_for(device_type: int | None) -> FlowLimits:
     """Return the airflow envelope for a device-type code.
 
-    Device types outside the known family fall back to the Flair 300
-    envelope rather than failing, so an unrecognised unit still works.
+    The code reported by register 4004 is an opaque device type, not the model
+    number, so it is resolved to a model first (see :mod:`device_types`).
+    Device types outside the known family fall back to the Flair 300 envelope
+    rather than failing, so an unrecognised unit still works.
     """
-    if device_type is None:
+    model = model_for_device_type(device_type)
+    if model is None:
         return DEFAULT_FLOW_LIMITS
-    return _FLOW_LIMITS.get(device_type, DEFAULT_FLOW_LIMITS)
+    return flow_limits_for_model(model)

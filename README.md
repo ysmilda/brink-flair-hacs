@@ -20,20 +20,27 @@ components on its own.
    then shows `EBus` until the first Modbus write, which switches it to `Modelbus`.
 4. Add *Brink Flair* via **Settings → Devices & Services**, choose Modbus TCP or
    serial, fill in the host/port (or serial device) and the unit's slave address.
+   If the unit's device type (register 4004) isn't mapped yet, the flow asks
+   you to pick your model — the choice is saved so the airflow limits match, and
+   the step offers links to submit the found device type for the mapping.
 
 ## Supported models
 
-Flow limits follow the model reported by the unit (register 4004):
+Register 4004 does not report the model number; it reports an opaque
+*device type* code that the integration maps to a model
+(`brink_flair_modbus/device_types.py`). Brink never documents these codes, so
+the mapping holds only codes verified against real units; unknown codes fall
+back to the Flair 300, so a compatible device still works.
 
-| Model | Step flow max (m³/h) | Desired flow max (m³/h) |
-|------:|-----:|-----:|
-| 200 | 200 | 200 |
-| 225 | 225 | 225 |
-| 300 | 300 | 280 |
-| 325 | 325 | 280 |
-| 400 | 400 | 400 |
-| 450 | 450 | 450 |
-| 600 | 600 | 600 |
+| Device type | Model | Step flow max (m³/h) | Desired flow max (m³/h) |
+|------:|------:|-----:|-----:|
+| – | 200 | 200 | 200 |
+| – | 225 | 225 | 225 |
+| 24 | 300 | 300 | 280 |
+| – | 325 | 325 | 280 |
+| – | 400 | 400 | 400 |
+| – | 450 | 450 | 450 |
+| – | 600 | 600 | 600 |
 
 Any unrecognised type falls back to the Flair 300 envelope, so a compatible
 device still works.

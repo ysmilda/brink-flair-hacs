@@ -299,27 +299,6 @@ def bit(
     )
 
 
-def option(key: str, value: int, label: str | None = None) -> OptionMetadata:
-    """Create one enum option."""
-    return OptionMetadata(key, value, label)
-
-
-#: The manual speed levels offered by the unit.
-LEVEL_OPTIONS = (
-    option("absence", 0, "Absence"),
-    option("low", 1, "Low"),
-    option("medium", 2, "Medium"),
-    option("high", 3, "High"),
-)
-
-#: The control modes offered by the unit.
-CONTROL_MODE_OPTIONS = (
-    option("off", 0, "Off"),
-    option("step", 1, "Step"),
-    option("flow", 2, "Flow"),
-)
-
-
 class BrinkComponent(Component):
     """A Brink Flair sub-system: typed fields over readable register ranges."""
 

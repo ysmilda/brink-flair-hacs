@@ -5,7 +5,8 @@
         },
         "error": {
             "cannot_connect": "Failed to connect",
-            "cannot_open_serial_port": "Failed to open the serial port"
+            "cannot_open_serial_port": "Failed to open the serial port",
+            "invalid_model": "Select one of the listed models"
         },
         "step": {
             "modbus_tcp": {
@@ -24,21 +25,22 @@
             "serial": {
                 "data": {
                     "baudrate": "Baud rate",
-                    "bytesize": "Byte size",
                     "device": "Device",
-                    "parity": "Parity",
-                    "stopbits": "Stop bits",
                     "unit_id": "Modbus unit"
                 },
                 "data_description": {
                     "baudrate": "The serial baud rate the unit communicates at (default 19200).",
-                    "bytesize": "The number of data bits.",
                     "device": "The serial port or networked serial proxy the unit is connected to, e.g. /dev/ttyUSB0.",
-                    "parity": "The serial parity.",
-                    "stopbits": "The number of stop bits.",
                     "unit_id": "The Brink Flair's Modbus station address (default 20)."
                 },
                 "title": "Serial connection"
+            },
+            "model": {
+                "data": {
+                    "model": "Model"
+                },
+                "description": "Your unit reports a device type (`{device_type}`) that isn't mapped to a model yet. Select your model below so the airflow limits match. Please also contribute the mapping: [report this device type]({issue_url}) or [open a pull request]({pr_url}).",
+                "title": "Select your model"
             },
             "user": {
                 "description": "How is the Modbus network connected?",
@@ -55,6 +57,17 @@
                 "e": "Even",
                 "n": "None",
                 "o": "Odd"
+            }
+        },
+        "model": {
+            "options": {
+                "200": "Flair 200",
+                "225": "Flair 225",
+                "300": "Flair 300",
+                "325": "Flair 325",
+                "400": "Flair 400",
+                "450": "Flair 450",
+                "600": "Flair 600"
             }
         }
     }
