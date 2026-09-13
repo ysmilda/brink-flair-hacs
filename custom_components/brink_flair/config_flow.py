@@ -147,6 +147,6 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
             ) as unit:
                 device = BrinkFlair(unit)
                 await device.info.async_update()
-        except ModbusError, OSError, ValueError, HomeAssistantError:
+        except (ModbusError, OSError, ValueError, HomeAssistantError):
             return None
         return device.info.model
