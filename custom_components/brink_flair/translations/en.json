@@ -1,0 +1,61 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "cannot_open_serial_port": "Failed to open the serial port"
+        },
+        "step": {
+            "modbus_tcp": {
+                "data": {
+                    "host": "Host",
+                    "port": "Port",
+                    "unit_id": "Modbus unit"
+                },
+                "data_description": {
+                    "host": "The hostname or IP address of the Modbus gateway or device.",
+                    "port": "The TCP port the Modbus gateway listens on (default 502).",
+                    "unit_id": "The Brink Flair's Modbus station address (default 20)."
+                },
+                "title": "Modbus TCP"
+            },
+            "serial": {
+                "data": {
+                    "baudrate": "Baud rate",
+                    "bytesize": "Byte size",
+                    "device": "Device",
+                    "parity": "Parity",
+                    "stopbits": "Stop bits",
+                    "unit_id": "Modbus unit"
+                },
+                "data_description": {
+                    "baudrate": "The serial baud rate the unit communicates at (default 19200).",
+                    "bytesize": "The number of data bits.",
+                    "device": "The serial port or networked serial proxy the unit is connected to, e.g. /dev/ttyUSB0.",
+                    "parity": "The serial parity.",
+                    "stopbits": "The number of stop bits.",
+                    "unit_id": "The Brink Flair's Modbus station address (default 20)."
+                },
+                "title": "Serial connection"
+            },
+            "user": {
+                "description": "How is the Modbus network connected?",
+                "menu_options": {
+                    "modbus_tcp": "Modbus TCP",
+                    "serial": "Serial (including serial proxies and networked connections)"
+                }
+            }
+        }
+    },
+    "selector": {
+        "parity": {
+            "options": {
+                "e": "Even",
+                "n": "None",
+                "o": "Odd"
+            }
+        }
+    }
+}
