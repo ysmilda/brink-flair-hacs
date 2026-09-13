@@ -9,7 +9,7 @@ reloads when the connection drops so it re-borrows a unit on the rebuilt
 connection.
 """
 
-from brink_flair_modbus import BrinkFlair
+from .brink_flair_modbus import BrinkFlair
 
 from homeassistant.components.modbus import async_get_unit
 from homeassistant.const import Platform

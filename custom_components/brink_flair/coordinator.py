@@ -3,7 +3,7 @@
 import logging
 from typing import override
 
-from brink_flair_modbus import BrinkFlair
+from .brink_flair_modbus import BrinkFlair
 from modbus_connection import ModbusError
 
 from homeassistant.config_entries import ConfigEntry

@@ -3,11 +3,11 @@
   "name": "Brink Flair",
   "codeowners": [],
   "config_flow": true,
-  "dependencies": ["modbus", "usb"],
-  "documentation": "https://www.home-assistant.io/integrations/brink_flair",
+  "dependencies": ["modbus"],
+  "documentation": "https://github.com/ysmilda/brink-flair-hacs",
   "integration_type": "device",
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/ysmilda/brink-flair-hacs/issues",
   "loggers": ["brink_flair_modbus"],
-  "quality_scale": "bronze",
-  "requirements": ["brink-flair-modbus==0.1.3"]
+  "version": "0.1.3"
 }

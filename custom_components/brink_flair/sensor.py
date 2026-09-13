@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import override
 
-from brink_flair_modbus import BypassStatus, FrostStatus, OperatingMode
+from .brink_flair_modbus import BypassStatus, FrostStatus, OperatingMode
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,

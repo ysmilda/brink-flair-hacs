@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import override
 
-from brink_flair_modbus import FlowLimits
+from .brink_flair_modbus import FlowLimits
 
 from homeassistant.components.number import (
     NumberDeviceClass,

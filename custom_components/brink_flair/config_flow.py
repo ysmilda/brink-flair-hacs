@@ -2,7 +2,7 @@
 
 from typing import Any, override
 
-from brink_flair_modbus import BrinkFlair
+from .brink_flair_modbus import BrinkFlair
 from modbus_connection import ModbusError
 import voluptuous as vol
 
