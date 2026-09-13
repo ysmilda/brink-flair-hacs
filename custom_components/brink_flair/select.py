@@ -2,14 +2,15 @@
 
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import override
+from typing import cast, override
+
+from brink_flair_modbus import BypassMode, ControlMode, VentilationLevel
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .brink_flair_modbus import BypassMode, ControlMode, VentilationLevel
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
@@ -74,7 +75,9 @@ class BrinkFlairSelect(BrinkEntity, SelectEntity):
     @override
     def current_option(self) -> str | None:
         """Return the current mode as a lowercase option name."""
-        value = getattr(self._subsystem, self.entity_description.attribute)
+        value = cast(
+            IntEnum | None, getattr(self._subsystem, self.entity_description.attribute)
+        )
         if value is None:
             return None
         return value.name.lower()

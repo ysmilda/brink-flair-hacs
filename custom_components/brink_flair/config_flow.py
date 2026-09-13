@@ -3,7 +3,16 @@
 from typing import Any, override
 from urllib.parse import urlencode
 
+from brink_flair_modbus import (
+    SUPPORTED_MODELS,
+    BrinkFlair,
+    BrinkProbe,
+    is_known_device_type,
+    model_name_for_device_type,
+)
+from modbus_connection import ModbusError
 import voluptuous as vol
+
 from homeassistant.components.modbus import async_get_temporary_unit
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
@@ -17,15 +26,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
     SerialPortSelector,
 )
-from modbus_connection import ModbusError
 
-from .brink_flair_modbus import (
-    SUPPORTED_MODELS,
-    BrinkFlair,
-    BrinkProbe,
-    is_known_device_type,
-    model_name_for_device_type,
-)
 from .connection import params_from_data
 from .const import (
     CONF_BAUDRATE,
@@ -40,10 +41,10 @@ from .const import (
     DOMAIN,
 )
 
-_GITHUB_ISSUES_NEW = "https://github.com/ysmilda/brink-flair-hacs/issues/new"
+_GITHUB_ISSUES_NEW = "https://github.com/ysmilda/brink-flair-modbus/issues/new"
 _GITHUB_MAPPING_EDIT = (
-    "https://github.com/ysmilda/brink-flair-hacs/edit/main/"
-    "custom_components/brink_flair/brink_flair_modbus/device_types.py"
+    "https://github.com/ysmilda/brink-flair-modbus/edit/main/"
+    "brink_flair_modbus/device_types.py"
 )
 
 _UNIT_ID = {
@@ -97,7 +98,7 @@ def _mapping_report_url(device_type: str) -> str:
             f"- Device type (register 4004): `{device_type}`\n"
             "- Model: the one selected in the setup flow\n\n"
             "The mapping lives in "
-            "`custom_components/brink_flair/brink_flair_modbus/device_types.py`."
+            "`brink_flair_modbus/device_types.py`."
         ),
     }
     return f"{_GITHUB_ISSUES_NEW}?{urlencode(params)}"
@@ -184,7 +185,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 model = int(user_input[CONF_MODEL])
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 errors["base"] = "invalid_model"
             else:
                 data = {**self._data, CONF_MODEL: model}
@@ -208,9 +209,14 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
             async with async_get_temporary_unit(
                 self.hass, params_from_data(data), data[CONF_UNIT_ID]
             ) as unit:
-                return await BrinkFlair.async_probe(unit)
-        except (ModbusError, OSError, ValueError, HomeAssistantError):
+                probe = await BrinkFlair.async_probe(unit)
+        except ModbusError, OSError, ValueError, HomeAssistantError:
             return None
+        # An unreachable unit (wrong address, flaky link) cannot report its
+        # identity, so treat an unreadable code exactly like no connection.
+        if probe.device_type is None:
+            return None
+        return probe
 
     async def _async_complete(
         self, data: dict[str, Any], probe: BrinkProbe

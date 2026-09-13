@@ -7,7 +7,9 @@ diagnostic status (operating mode, bypass, frost, filter counters).
 
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import override
+from typing import cast, override
+
+from brink_flair_modbus import BypassStatus, FrostStatus, OperatingMode
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -25,7 +27,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .brink_flair_modbus import BypassStatus, FrostStatus, OperatingMode
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
@@ -283,4 +284,4 @@ class BrinkSensor(BrinkEntity, SensorEntity):
         value = getattr(self._subsystem, self.entity_description.attribute)
         if isinstance(value, IntEnum):
             return value.name.lower()
-        return value
+        return cast(int | float | str | None, value)

@@ -1,7 +1,9 @@
 """Number platform — numeric airflow and filter settings of the Brink Flair unit."""
 
 from dataclasses import dataclass
-from typing import override
+from typing import cast, override
+
+from brink_flair_modbus import FlowLimits
 
 from homeassistant.components.number import (
     NumberDeviceClass,
@@ -17,7 +19,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .brink_flair_modbus import FlowLimits
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
@@ -213,7 +214,9 @@ class BrinkFlairNumber(BrinkEntity, NumberEntity):
     @override
     def native_value(self) -> float | None:
         """Return the current value."""
-        return getattr(self._subsystem, self.entity_description.attribute)
+        return cast(
+            float | None, getattr(self._subsystem, self.entity_description.attribute)
+        )
 
     @override
     async def async_set_native_value(self, value: float) -> None:

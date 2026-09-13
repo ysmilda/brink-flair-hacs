@@ -4,10 +4,10 @@ Custom integration for the **Brink Flair** (and compatible) ventilation units �
 models 200, 225, 300, 325, 400, 450 and 600 — over Modbus.
 
 The integration borrows a Modbus connection from the built-in `modbus`
-integration and talks to the unit's register map directly. The supporting
-`brink_flair_modbus` library is vendored into this repository, so installation
-needs no extra Python packages: Home Assistant resolves the `modbus` and `usb`
-components on its own.
+integration and talks to the unit's register map through the
+[`brink-flair-modbus`](https://github.com/ysmilda/brink-flair-modbus) Python
+library (published to PyPI). Home Assistant installs it automatically from the
+manifest requirements; the `modbus` and `usb` components resolve themselves.
 
 ## Install
 
@@ -28,9 +28,10 @@ components on its own.
 
 Register 4004 does not report the model number; it reports an opaque
 *device type* code that the integration maps to a model
-(`brink_flair_modbus/device_types.py`). Brink never documents these codes, so
-the mapping holds only codes verified against real units; unknown codes fall
-back to the Flair 300, so a compatible device still works.
+(`brink_flair_modbus/device_types.py` in the library repo). Brink never
+documents these codes, so the mapping holds only codes verified against real
+units; unknown codes fall back to the Flair 300, so a compatible device still
+works.
 
 | Device type | Model | Step flow max (m³/h) | Desired flow max (m³/h) |
 |------:|------:|-----:|-----:|
@@ -68,12 +69,18 @@ device still works.
 
 - `coordinator.py` polls the unit on a schedule through the connection owned by
   the core `modbus` integration; the entry reloads when that connection drops.
-- `brink_flair_modbus/` is the pure-Python protocol library. The same library
-  ships separately (pip package `brink-flair-modbus`) for the upstream core
-  integration; this copy is kept in sync manually.
+- The register protocol lives in the external
+  [`brink-flair-modbus`](https://github.com/ysmilda/brink-flair-modbus)
+  library, published to PyPI and pinned in the manifest. The integration code
+  mirrors [`homeassistant/components/brink_flair` in Home Assistant
+  core](https://github.com/home-assistant/core/tree/dev/homeassistant/components/brink_flair).
 
 ## Development
 
-To use the upstream core integration code instead of this copy, or to run the
-test suite, see `homeassistant/components/brink_flair` and
-`tests/components/brink_flair` in the Home Assistant core repository.
+The component code is maintained in Home Assistant core
+(`homeassistant/components/brink_flair`, with tests under
+`tests/components/brink_flair`) and copied into this repository for the HACS
+distribution. Home Assistant must have the `modbus` integration
+available on this install for the dependency to resolve: the built-in `modbus`
+integration's own requirements install `modbus-connection`, which
+`brink-flair-modbus` builds on.

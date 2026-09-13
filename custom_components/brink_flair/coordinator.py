@@ -3,12 +3,13 @@
 import logging
 from typing import override
 
+from brink_flair_modbus import BrinkFlair
+from modbus_connection import ModbusError
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from modbus_connection import ModbusError
 
-from .brink_flair_modbus import BrinkFlair
 from .const import DOMAIN, SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)

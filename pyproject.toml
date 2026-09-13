@@ -10,3 +10,6 @@ line-length = 88
 [tool.ruff.lint]
 [tool.ruff.lint.isort]
 combine-as-imports = true
+# Mirrors Home Assistant core so integration files can be shared verbatim.
+force-sort-within-sections = true
+known-first-party = ["homeassistant", "testing"]
