@@ -1,8 +1,7 @@
 {
   "name": "Brink Flair",
   "domain": "brink_flair",
-  "homeassistant": "2026.10.0",
+  "homeassistant": "2026.9.0",
   "render_readme": true,
-  "country": ["BE", "CZ", "DE", "DK", "EE", "FI", "IE", "LV", "LT", "LU", "NL", "PL", "SE", "SK"],
   "zip_release": false
 }
