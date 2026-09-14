@@ -1,8 +1,6 @@
-"""Switch platform — bypass boost and standby of the Brink Flair unit.
+"""Switch platform — bypass boost and the optimistic standby toggle.
 
-Standby is written to register 8003 and never read back (the reference config
-uses an optimistic template switch), so the standby switch mirrors the last
-request instead of the unit state.
+Standby (register 8003) is never read back, so its switch mirrors the last request.
 """
 
 from dataclasses import dataclass
@@ -53,14 +51,13 @@ async def async_setup_entry(
 
 
 class BrinkFlairSwitch(BrinkEntity, SwitchEntity):
-    """A switch for one writable settings field, or the relayed standby flag."""
+    """A switch for a settings field, or the optimistic standby mirror."""
 
     entity_description: BrinkSwitchDescription
 
     def __init__(
         self, coordinator: BrinkCoordinator, description: BrinkSwitchDescription
     ) -> None:
-        """Initialize the switch."""
         super().__init__(coordinator, description.key, description.component)
         self.entity_description = description
 

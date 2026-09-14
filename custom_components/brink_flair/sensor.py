@@ -1,9 +1,4 @@
-"""Sensor platform — airflow readings and status of the Brink Flair unit.
-
-Setpoints live on the number / select platforms; what remains here is either a
-measured value (pressures, flows, temperatures, humidities, fan speeds) or a
-diagnostic status (operating mode, bypass, frost, filter counters).
-"""
+"""Sensor platform — measured values and diagnostic status of the Brink Flair unit."""
 
 from dataclasses import dataclass
 from enum import IntEnum
@@ -53,6 +48,7 @@ def _measurement(
     state_class: SensorStateClass | None = None,
     diagnostic: bool = False,
     entity_registry_enabled_default: bool = True,
+    precision: int | None = None,
 ) -> BrinkSensorDescription:
     return BrinkSensorDescription(
         key=f"{component}_{attribute}",
@@ -64,6 +60,7 @@ def _measurement(
         state_class=state_class,
         entity_category=EntityCategory.DIAGNOSTIC if diagnostic else None,
         entity_registry_enabled_default=entity_registry_enabled_default,
+        suggested_display_precision=precision,
     )
 
 
@@ -116,6 +113,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
+        precision=1,
     ),
     _measurement(
         "measurements",
@@ -157,6 +155,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
+        precision=1,
     ),
     _measurement(
         "measurements",
@@ -189,6 +188,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
+        precision=1,
     ),
     _measurement(
         "measurements",
@@ -211,6 +211,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "Filter days used",
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
+        precision=1,
     ),
     _measurement(
         "device",
@@ -218,6 +219,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "Days until filter change",
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
+        precision=1,
     ),
     _measurement(
         "info",
@@ -234,8 +236,10 @@ def _enum_sensor(
     name: str,
     options: list[str],
 ) -> BrinkSensorDescription:
+    key = f"{component}_{attribute}"
     return BrinkSensorDescription(
-        key=f"{component}_{attribute}",
+        key=key,
+        translation_key=key,
         name=name,
         component=component,
         attribute=attribute,
@@ -273,15 +277,17 @@ class BrinkSensor(BrinkEntity, SensorEntity):
     def __init__(
         self, coordinator: BrinkCoordinator, description: BrinkSensorDescription
     ) -> None:
-        """Initialize the sensor."""
         super().__init__(coordinator, description.key, description.component)
         self.entity_description = description
 
     @property
     @override
     def native_value(self) -> int | float | str | None:
-        """Return the current value, mapping enums to their lowercase name."""
+        """Return the value; enums as lowercase names, floats rounded to precision."""
         value = getattr(self._subsystem, self.entity_description.attribute)
         if isinstance(value, IntEnum):
             return value.name.lower()
+        precision = self.entity_description.suggested_display_precision
+        if isinstance(value, float) and precision is not None:
+            return round(value, precision)
         return cast(int | float | str | None, value)

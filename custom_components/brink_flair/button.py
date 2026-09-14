@@ -34,7 +34,6 @@ class BrinkFlairButton(BrinkEntity, ButtonEntity):
     entity_description = _RESET_FILTER
 
     def __init__(self, coordinator: BrinkCoordinator) -> None:
-        """Initialize the button."""
         super().__init__(coordinator, _RESET_FILTER.key, "device")
 
     @override

@@ -13,7 +13,6 @@ class BrinkEntity(CoordinatorEntity[BrinkCoordinator]):
     _attr_has_entity_name = True
 
     def __init__(self, coordinator: BrinkCoordinator, key: str, component: str) -> None:
-        """Initialize the entity."""
         super().__init__(coordinator)
         self._component = component
         entry = coordinator.config_entry

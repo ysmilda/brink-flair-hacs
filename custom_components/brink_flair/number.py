@@ -80,11 +80,7 @@ def _config_gauge(
 
 
 def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
-    """Describe the numbers with the airflow envelope of the detected model.
-
-    The six flow numbers share the family register map; only their bounds
-    differ between Flair models (200/225/300/325/400/450/600).
-    """
+    """Describe the numbers with the detected model's airflow envelope."""
     return (
         _flow(
             "settings",
@@ -206,21 +202,19 @@ class BrinkFlairNumber(BrinkEntity, NumberEntity):
     def __init__(
         self, coordinator: BrinkCoordinator, description: BrinkNumberDescription
     ) -> None:
-        """Initialize the number."""
         super().__init__(coordinator, description.key, description.component)
         self.entity_description = description
 
     @property
     @override
     def native_value(self) -> float | None:
-        """Return the current value."""
         return cast(
             float | None, getattr(self._subsystem, self.entity_description.attribute)
         )
 
     @override
     async def async_set_native_value(self, value: float) -> None:
-        """Write the value to the unit, scaled by the register field."""
+        """Write the value to the unit."""
         await self.coordinator.device.settings.write(
             self.entity_description.attribute, value
         )

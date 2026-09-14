@@ -30,8 +30,10 @@ def _select(
     name: str,
     enum_type: type[IntEnum],
 ) -> BrinkSelectDescription:
+    key = f"{component}_{attribute}"
     return BrinkSelectDescription(
-        key=f"{component}_{attribute}",
+        key=key,
+        translation_key=key,
         name=name,
         component=component,
         attribute=attribute,
@@ -67,7 +69,6 @@ class BrinkFlairSelect(BrinkEntity, SelectEntity):
     def __init__(
         self, coordinator: BrinkCoordinator, description: BrinkSelectDescription
     ) -> None:
-        """Initialize the select."""
         super().__init__(coordinator, description.key, description.component)
         self.entity_description = description
 
@@ -93,11 +94,7 @@ class BrinkFlairSelect(BrinkEntity, SelectEntity):
         )
 
     async def _guard_bypass_override(self) -> None:
-        """Refuse a forced bypass while the supply flow is too high.
-
-        The unit can draw cold outside air through an open bypass, so the
-        reference config blocks any user override above 200 m³/h.
-        """
+        """Block a forced bypass above 200 m³/h supply flow (it would draw cold air in)."""
         supply_volume = self.coordinator.device.measurements.supply_volume
         if supply_volume is not None and supply_volume > 200:
             raise HomeAssistantError(

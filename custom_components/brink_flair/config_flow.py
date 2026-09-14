@@ -30,7 +30,6 @@ from homeassistant.helpers.selector import (
 from .connection import params_from_data
 from .const import (
     CONF_BAUDRATE,
-    CONF_DEVICE_TYPE,
     CONF_MODEL,
     CONF_UNIT_ID,
     CONNECTION_SERIAL,
@@ -63,8 +62,7 @@ STEP_MODBUS_TCP = vol.Schema(
     }
 )
 
-# SerialPortSelector lists local serial ports and network serial proxies, so a
-# Brink Flair behind an ESPHome serial proxy is reachable here too.
+# SerialPortSelector also lists network serial proxies (e.g. ESPHome).
 STEP_SERIAL = vol.Schema(
     {
         vol.Required(CONF_DEVICE): SerialPortSelector(),
@@ -75,7 +73,7 @@ STEP_SERIAL = vol.Schema(
     }
 )
 
-# Shown only when register 4004 returns a device type that is not mapped yet.
+# Shown only when register 4004 reports an unmapped device type.
 STEP_MODEL = vol.Schema(
     {
         vol.Required(CONF_MODEL): SelectSelector(
@@ -120,7 +118,6 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self) -> None:
-        """Initialize the flow."""
         super().__init__()
         self._data: dict[str, Any] = {}
         self._device_type: int | None = None
@@ -200,7 +197,9 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _check_not_configured(self, data: dict[str, Any]) -> None:
         """Abort if this transport + unit already has an entry."""
         params = params_from_data(data)
-        await self.async_set_unique_id(f"{params.endpoint[1]}_{data[CONF_UNIT_ID]}")
+        # Endpoint identifies the device: transport, address, and TCP port.
+        endpoint = "-".join(str(part) for part in params.endpoint)
+        await self.async_set_unique_id(f"{endpoint}_{data[CONF_UNIT_ID]}")
         self._abort_if_unique_id_configured()
 
     async def _async_probe(self, data: dict[str, Any]) -> BrinkProbe | None:
@@ -212,8 +211,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
                 probe = await BrinkFlair.async_probe(unit)
         except ModbusError, OSError, ValueError, HomeAssistantError:
             return None
-        # An unreachable unit (wrong address, flaky link) cannot report its
-        # identity, so treat an unreadable code exactly like no connection.
+        # No code read means unreachable unit (wrong address, flaky link).
         if probe.device_type is None:
             return None
         return probe
@@ -221,18 +219,11 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _async_complete(
         self, data: dict[str, Any], probe: BrinkProbe
     ) -> ConfigFlowResult:
-        """Create the entry, or route to model selection for an unknown device type.
-
-        The register-4004 code is an opaque device type, not the model number.
-        Known codes create the entry directly; unknown ones fall through to
-        ``async_step_model`` so the user picks their model (and is invited to
-        report the code so the mapping can be extended).
-        """
-        stored = {**data, CONF_DEVICE_TYPE: probe.device_type}
+        """Create the entry, or route to model selection for an unknown device type."""
         if not is_known_device_type(probe.device_type):
-            self._data = stored
+            self._data = data
             self._device_type = probe.device_type
             return await self.async_step_model()
         return self.async_create_entry(
-            title=model_name_for_device_type(probe.device_type), data=stored
+            title=model_name_for_device_type(probe.device_type), data=data
         )

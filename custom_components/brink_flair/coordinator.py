@@ -18,12 +18,6 @@ type BrinkConfigEntry = ConfigEntry[BrinkCoordinator]
 
 
 class BrinkCoordinator(DataUpdateCoordinator[BrinkFlair]):
-    """Refreshes every sub-system on a schedule.
-
-    ``async_update`` fans out to each component (each reads only its own
-    registers), so adding/removing entities never changes what is polled. The
-    ``modbus`` integration owns the connection; this coordinator only reads.
-    """
 
     config_entry: BrinkConfigEntry
 
@@ -33,7 +27,6 @@ class BrinkCoordinator(DataUpdateCoordinator[BrinkFlair]):
         entry: BrinkConfigEntry,
         device: BrinkFlair,
     ) -> None:
-        """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,

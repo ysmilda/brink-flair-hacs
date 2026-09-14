@@ -54,6 +54,90 @@
             }
         }
     },
+    "entity": {
+        "sensor": {
+            "status_operation_mode": {
+                "name": "Operating mode",
+                "state": {
+                    "standby": "Standby",
+                    "bootloader": "Bootloader",
+                    "non_blocking_error": "Non-blocking error",
+                    "blocking_error": "Blocking error",
+                    "manual": "Manual",
+                    "holiday": "Holiday",
+                    "night_ventilation": "Night ventilation",
+                    "party": "Party",
+                    "bypass_boost": "Bypass boost",
+                    "normal_boost": "Normal boost",
+                    "auto_co2": "Auto (CO2)",
+                    "auto_ebus": "Auto (eBus)",
+                    "auto_modbus": "Auto (Modbus)",
+                    "auto_lan_wlan_portal": "Auto (LAN/WLAN portal)",
+                    "auto_lan_wlan_local": "Auto (LAN/WLAN local)"
+                }
+            },
+            "status_bypass_status": {
+                "name": "Bypass status",
+                "state": {
+                    "initialize": "Initializing",
+                    "opening": "Opening",
+                    "closing": "Closing",
+                    "open": "Open",
+                    "closed": "Closed",
+                    "error": "Error"
+                }
+            },
+            "status_frost_status": {
+                "name": "Frost status",
+                "state": {
+                    "initialize": "Initializing",
+                    "powerup_delay": "Power-up delay",
+                    "no_frost": "No frost",
+                    "no_frost_delay": "No frost delay",
+                    "frost_control_start_delay": "Frost control start delay",
+                    "wait_for_icing": "Waiting for icing",
+                    "ice_detected_delay": "Ice detected delay",
+                    "heating": "Heating",
+                    "wait_for_free_heater": "Waiting for free heater",
+                    "fan_control_start_delay": "Fan control start delay",
+                    "fan_control_wait_delay": "Fan control wait delay",
+                    "fan_control": "Fan control",
+                    "fan_off_delay": "Fan off delay",
+                    "fan_off": "Fan off",
+                    "fan_restarting": "Fan restarting",
+                    "error": "Error",
+                    "test_modus": "Test mode"
+                }
+            }
+        },
+        "select": {
+            "settings_control_mode": {
+                "name": "Control mode",
+                "state": {
+                    "off": "Off",
+                    "step": "Step",
+                    "flow": "Flow"
+                }
+            },
+            "settings_level": {
+                "name": "Ventilation level",
+                "state": {
+                    "absence": "Absence",
+                    "low": "Low",
+                    "medium": "Medium",
+                    "high": "High"
+                }
+            },
+            "settings_bypass_mode": {
+                "name": "Bypass mode",
+                "state": {
+                    "auto": "Auto",
+                    "closed": "Closed",
+                    "open": "Open"
+                }
+            }
+        }
+    },
     "selector": {
         "model": {
             "options": {

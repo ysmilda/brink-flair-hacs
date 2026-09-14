@@ -38,7 +38,6 @@ class BrinkFilterDirtyBinarySensor(BrinkEntity, BinarySensorEntity):
     entity_description = _DESCRIPTION
 
     def __init__(self, coordinator: BrinkCoordinator) -> None:
-        """Initialize the binary sensor."""
         super().__init__(coordinator, _DESCRIPTION.key, "status")
 
     @property
