@@ -49,9 +49,10 @@ def _measurement(
     diagnostic: bool = False,
     entity_registry_enabled_default: bool = True,
     precision: int | None = None,
+    key: str | None = None,
 ) -> BrinkSensorDescription:
     return BrinkSensorDescription(
-        key=f"{component}_{attribute}",
+        key=key or f"{component}_{attribute}",
         name=name,
         component=component,
         attribute=attribute,
@@ -223,8 +224,9 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     ),
     _measurement(
         "info",
-        "device_type",
+        "model",
         "Device type",
+        key="info_device_type",
         diagnostic=True,
     ),
 )
