@@ -5,7 +5,7 @@
         },
         "error": {
             "cannot_connect": "Failed to connect",
-            "cannot_open_serial_port": "Failed to open the serial port",
+            "device_not_found": "No device found",
             "invalid_model": "Select one of the listed models"
         },
         "step": {

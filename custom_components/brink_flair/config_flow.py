@@ -215,7 +215,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
             await self._check_not_configured(data)
             probe = await self._async_probe(data)
             if probe is None:
-                errors["base"] = "cannot_open_serial_port"
+                errors["base"] = "device_not_found"
             else:
                 return await self._async_complete(data, probe)
         schema = vol.Schema(
