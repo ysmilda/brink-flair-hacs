@@ -45,3 +45,9 @@ class BrinkFilterDirtyBinarySensor(BrinkEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return whether the filter is due for a change."""
         return self.coordinator.device.status.filter_dirty
+
+    @property
+    @override
+    def icon(self) -> str:
+        """Return a filter icon that reflects the current (dirty) state."""
+        return "mdi:filter-remove" if self.is_on else "mdi:air-filter"
