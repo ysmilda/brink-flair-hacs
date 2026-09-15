@@ -89,13 +89,24 @@ def _mapping_report_url(device_type: str) -> str:
     return f"{_GITHUB_ISSUES_NEW}?{urlencode(params)}"
 
 
-def _model_placeholders(device_type: int | None) -> dict[str, str]:
-    """Build the placeholders for the model-selection step description."""
-    reported = str(device_type) if device_type is not None else "unknown"
+def _discovered_placeholders(probe: BrinkProbe) -> dict[str, str]:
+    """Build the placeholders for the device-discovery step description."""
+    reported = str(probe.device_type) if probe.device_type is not None else "unknown"
+    if is_known_device_type(probe.device_type):
+        return {
+            "model": model_name_for_device_type(probe.device_type),
+            "device_type": reported,
+            "model_help": "",
+        }
     return {
+        "model": "a Brink Flair unit",
         "device_type": reported,
-        "issue_url": _mapping_report_url(reported),
-        "pr_url": _GITHUB_MAPPING_EDIT,
+        "model_help": (
+            " This unit's device type isn't mapped to a model yet, so select its "
+            "model below to set the correct airflow limits. You can also "
+            f"[report this device type]({_mapping_report_url(reported)}) or "
+            f"[open a pull request]({_GITHUB_MAPPING_EDIT}) to add the mapping."
+        ),
     }
 
 
@@ -107,7 +118,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         super().__init__()
         self._data: dict[str, Any] = {}
-        self._device_type: int | None = None
+        self._probe: BrinkProbe | None = None
 
     @override
     async def async_step_user(
@@ -222,24 +233,38 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="serial", data_schema=schema, errors=errors
         )
 
-    async def async_step_model(
+    async def async_step_discovered(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Let the user pick the model when the device type is unknown."""
+        """Show the discovered unit, asking for a model when the type is unmapped."""
         errors: dict[str, str] = {}
+        probe = self._probe
+        assert probe is not None
         if user_input is not None:
+            data = {**self._data}
+            if is_known_device_type(probe.device_type):
+                return self.async_create_entry(
+                    title=model_name_for_device_type(probe.device_type), data=data
+                )
             try:
                 model = int(user_input[CONF_MODEL])
             except TypeError, ValueError:
                 errors["base"] = "invalid_model"
             else:
-                data = {**self._data, CONF_MODEL: model}
-                return self.async_create_entry(title=f"Brink Flair {model}", data=data)
+                data[CONF_MODEL] = model
+                return self.async_create_entry(
+                    title=f"Brink Flair {model}", data=data
+                )
+        schema = (
+            STEP_MODEL
+            if not is_known_device_type(probe.device_type)
+            else vol.Schema({})
+        )
         return self.async_show_form(
-            step_id="model",
-            data_schema=STEP_MODEL,
+            step_id="discovered",
+            data_schema=schema,
             errors=errors,
-            description_placeholders=_model_placeholders(self._device_type),
+            description_placeholders=_discovered_placeholders(probe),
         )
 
     async def _check_not_configured(self, data: dict[str, Any]) -> None:
@@ -283,11 +308,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _async_complete(
         self, data: dict[str, Any], probe: BrinkProbe
     ) -> ConfigFlowResult:
-        """Create the entry, or route to model selection for an unknown device type."""
-        if not is_known_device_type(probe.device_type):
-            self._data = data
-            self._device_type = probe.device_type
-            return await self.async_step_model()
-        return self.async_create_entry(
-            title=model_name_for_device_type(probe.device_type), data=data
-        )
+        """Store the probe and let the user confirm the discovered device."""
+        self._data = data
+        self._probe = probe
+        return await self.async_step_discovered()

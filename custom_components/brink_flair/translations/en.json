@@ -35,15 +35,15 @@
                 },
                 "title": "Serial connection"
             },
-            "model": {
+            "discovered": {
                 "data": {
                     "model": "Model"
                 },
                 "data_description": {
                     "model": "The model number printed on the unit. It sets the maximum airflow the integration allows."
                 },
-                "description": "Your unit reports a device type (`{device_type}`) that isn't mapped to a model yet. Select your model below so the airflow limits match. Please also contribute the mapping: [report this device type]({issue_url}) or [open a pull request]({pr_url}).",
-                "title": "Select your model"
+                "description": "Connection verified — found **{model}** (device type `{device_type}`).{model_help}",
+                "title": "Device discovered"
             },
             "reconfigure": {
                 "description": "Update your Brink Flair connection settings.",
