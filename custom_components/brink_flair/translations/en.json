@@ -45,6 +45,13 @@
                 "description": "Your unit reports a device type (`{device_type}`) that isn't mapped to a model yet. Select your model below so the airflow limits match. Please also contribute the mapping: [report this device type]({issue_url}) or [open a pull request]({pr_url}).",
                 "title": "Select your model"
             },
+            "reconfigure": {
+                "description": "Update your Brink Flair connection settings.",
+                "menu_options": {
+                    "modbus_tcp": "Modbus TCP",
+                    "serial": "Serial (including serial proxies and networked connections)"
+                }
+            },
             "user": {
                 "description": "How is the Modbus network connected?",
                 "menu_options": {
