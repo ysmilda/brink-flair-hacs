@@ -9,6 +9,7 @@ from homeassistant.components.number import (
     NumberDeviceClass,
     NumberEntity,
     NumberEntityDescription,
+    NumberMode,
 )
 from homeassistant.const import (
     PERCENTAGE,
@@ -48,6 +49,7 @@ def _flow(
         native_min_value=minimum,
         native_max_value=maximum,
         native_step=1,
+        mode=NumberMode.BOX,
         device_class=NumberDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         entity_category=EntityCategory.CONFIG if config else None,
