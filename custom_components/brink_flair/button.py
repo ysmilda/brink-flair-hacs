@@ -10,10 +10,12 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
+# State arrives through the coordinator; async_update is not used.
+PARALLEL_UPDATES = 0
+
 _RESET_FILTER = ButtonEntityDescription(
     key="reset_filter",
-    name="Filter reset",
-    icon="mdi:filter-remove",
+    translation_key="reset_filter",
     entity_category=EntityCategory.CONFIG,
 )
 

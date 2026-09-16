@@ -1,0 +1,17 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "status_filter_dirty": {
+        "default": "mdi:air-filter",
+        "state": {
+          "on": "mdi:filter-remove"
+        }
+      }
+    },
+    "button": {
+      "reset_filter": {
+        "default": "mdi:filter-remove"
+      }
+    }
+  }
+}

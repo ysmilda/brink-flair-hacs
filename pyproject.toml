@@ -13,3 +13,8 @@ combine-as-imports = true
 # Mirrors Home Assistant core so integration files can be shared verbatim.
 force-sort-within-sections = true
 known-first-party = ["homeassistant", "testing"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-p no:cacheprovider"

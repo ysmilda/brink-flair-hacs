@@ -18,7 +18,6 @@ type BrinkConfigEntry = ConfigEntry[BrinkCoordinator]
 
 
 class BrinkCoordinator(DataUpdateCoordinator[BrinkFlair]):
-
     config_entry: BrinkConfigEntry
 
     def __init__(
@@ -41,5 +40,9 @@ class BrinkCoordinator(DataUpdateCoordinator[BrinkFlair]):
         try:
             await self.device.async_update()
         except ModbusError as err:
-            raise UpdateFailed(f"Error communicating with Brink Flair: {err}") from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
         return self.device

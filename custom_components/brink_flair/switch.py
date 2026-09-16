@@ -13,6 +13,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
+# State arrives through the coordinator; async_update is not used.
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class BrinkSwitchDescription(SwitchEntityDescription):
@@ -25,13 +28,13 @@ class BrinkSwitchDescription(SwitchEntityDescription):
 _SWITCHES: tuple[BrinkSwitchDescription, ...] = (
     BrinkSwitchDescription(
         key="settings_bypass_boost",
-        name="Bypass boost",
+        translation_key="settings_bypass_boost",
         component="settings",
         attribute="bypass_boost",
     ),
     BrinkSwitchDescription(
         key="standby",
-        name="Standby",
+        translation_key="standby",
         component="settings",
         attribute=None,
     ),

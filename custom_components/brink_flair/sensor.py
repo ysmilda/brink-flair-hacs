@@ -25,6 +25,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
+# State arrives through the coordinator; async_update is not used.
+PARALLEL_UPDATES = 0
+
 _MODES = [mode.name.lower() for mode in OperatingMode]
 _BYPASS = [mode.name.lower() for mode in BypassStatus]
 _FROST = [mode.name.lower() for mode in FrostStatus]
@@ -41,7 +44,6 @@ class BrinkSensorDescription(SensorEntityDescription):
 def _measurement(
     component: str,
     attribute: str,
-    name: str,
     *,
     device_class: SensorDeviceClass | None = None,
     native_unit_of_measurement: str | None = None,
@@ -51,9 +53,10 @@ def _measurement(
     precision: int | None = None,
     key: str | None = None,
 ) -> BrinkSensorDescription:
+    key = key or f"{component}_{attribute}"
     return BrinkSensorDescription(
-        key=key or f"{component}_{attribute}",
-        name=name,
+        key=key,
+        translation_key=key,
         component=component,
         attribute=attribute,
         device_class=device_class,
@@ -69,7 +72,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "supply_pressure",
-        "Supply pressure",
         device_class=SensorDeviceClass.PRESSURE,
         native_unit_of_measurement=UnitOfPressure.PA,
         state_class=SensorStateClass.MEASUREMENT,
@@ -77,7 +79,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "exhaust_pressure",
-        "Exhaust pressure",
         device_class=SensorDeviceClass.PRESSURE,
         native_unit_of_measurement=UnitOfPressure.PA,
         state_class=SensorStateClass.MEASUREMENT,
@@ -85,7 +86,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "setpoint_supply_volume",
-        "Supply volume setpoint",
         device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
@@ -95,7 +95,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "supply_volume",
-        "Supply volume",
         device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
@@ -103,14 +102,12 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "supply_fan_rpm",
-        "Supply fan speed",
         native_unit_of_measurement="rpm",
         state_class=SensorStateClass.MEASUREMENT,
     ),
     _measurement(
         "measurements",
         "supply_temperature",
-        "Supply temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
@@ -119,7 +116,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "supply_relative_humidity",
-        "Supply humidity",
         device_class=SensorDeviceClass.HUMIDITY,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -127,7 +123,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "setpoint_exhaust_volume",
-        "Exhaust volume setpoint",
         device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
@@ -137,7 +132,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "exhaust_volume",
-        "Exhaust volume",
         device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
@@ -145,14 +139,12 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "exhaust_fan_rpm",
-        "Exhaust fan speed",
         native_unit_of_measurement="rpm",
         state_class=SensorStateClass.MEASUREMENT,
     ),
     _measurement(
         "measurements",
         "exhaust_temperature",
-        "Exhaust temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
@@ -161,7 +153,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "exhaust_relative_humidity",
-        "Exhaust humidity",
         device_class=SensorDeviceClass.HUMIDITY,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -169,7 +160,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "frost_heater_setpoint",
-        "Frost heater setpoint",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
@@ -177,7 +167,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "frost_fan_reduction",
-        "Frost fan reduction",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
@@ -185,7 +174,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "outside_temperature",
-        "Outside temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
@@ -194,14 +182,12 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "measurements",
         "filter_used_hours",
-        "Filter hours used",
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
     ),
     _measurement(
         "measurements",
         "filter_used_volume",
-        "Filter used volume",
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
         diagnostic=True,
@@ -209,7 +195,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "device",
         "filter_used_days",
-        "Filter days used",
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
         precision=1,
@@ -217,7 +202,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "device",
         "exchange_filter_in",
-        "Days until filter change",
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
         precision=1,
@@ -225,7 +209,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     _measurement(
         "info",
         "model",
-        "Device type",
         key="info_device_type",
         diagnostic=True,
     ),
@@ -235,14 +218,12 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
 def _enum_sensor(
     component: str,
     attribute: str,
-    name: str,
     options: list[str],
 ) -> BrinkSensorDescription:
     key = f"{component}_{attribute}"
     return BrinkSensorDescription(
         key=key,
         translation_key=key,
-        name=name,
         component=component,
         attribute=attribute,
         device_class=SensorDeviceClass.ENUM,
@@ -252,9 +233,9 @@ def _enum_sensor(
 
 
 _STATUS: tuple[BrinkSensorDescription, ...] = (
-    _enum_sensor("status", "operation_mode", "Operating mode", _MODES),
-    _enum_sensor("status", "bypass_status", "Bypass status", _BYPASS),
-    _enum_sensor("status", "frost_status", "Frost status", _FROST),
+    _enum_sensor("status", "operation_mode", _MODES),
+    _enum_sensor("status", "bypass_status", _BYPASS),
+    _enum_sensor("status", "frost_status", _FROST),
 )
 
 

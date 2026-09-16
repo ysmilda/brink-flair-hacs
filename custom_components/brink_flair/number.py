@@ -23,6 +23,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
+# State arrives through the coordinator; async_update is not used.
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class BrinkNumberDescription(NumberEntityDescription):
@@ -35,7 +38,6 @@ class BrinkNumberDescription(NumberEntityDescription):
 def _flow(
     component: str,
     attribute: str,
-    name: str,
     minimum: int,
     maximum: int,
     *,
@@ -43,7 +45,7 @@ def _flow(
 ) -> BrinkNumberDescription:
     return BrinkNumberDescription(
         key=f"{component}_{attribute}",
-        name=name,
+        translation_key=f"{component}_{attribute}",
         component=component,
         attribute=attribute,
         native_min_value=minimum,
@@ -59,7 +61,6 @@ def _flow(
 def _config_gauge(
     component: str,
     attribute: str,
-    name: str,
     minimum: float,
     maximum: float,
     step: float,
@@ -67,7 +68,7 @@ def _config_gauge(
 ) -> BrinkNumberDescription:
     return BrinkNumberDescription(
         key=f"{component}_{attribute}",
-        name=name,
+        translation_key=f"{component}_{attribute}",
         component=component,
         attribute=attribute,
         native_min_value=minimum,
@@ -87,48 +88,20 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
         _flow(
             "settings",
             "desired_flow_rate",
-            "Desired flow rate",
             0,
             limits.modbus_flow_rate_max,
             config=False,
         ),
-        _flow(
-            "settings", "flow_0", "Flow rate step 0", 0, limits.flow_max, config=True
-        ),
-        _flow(
-            "settings", "flow_1", "Flow rate step 1", 50, limits.flow_max, config=True
-        ),
-        _flow(
-            "settings", "flow_2", "Flow rate step 2", 50, limits.flow_max, config=True
-        ),
-        _flow(
-            "settings", "flow_3", "Flow rate step 3", 50, limits.flow_max, config=True
-        ),
-        _config_gauge(
-            "settings", "bypass_boost_position", "Bypass boost position", 0, 3, 1, None
-        ),
-        _config_gauge(
-            "settings",
-            "imbalance_intake",
-            "Intake imbalance",
-            -15,
-            15,
-            1,
-            PERCENTAGE,
-        ),
-        _config_gauge(
-            "settings",
-            "imbalance_exhaust",
-            "Exhaust imbalance",
-            -15,
-            15,
-            1,
-            PERCENTAGE,
-        ),
+        _flow("settings", "flow_0", 0, limits.flow_max, config=True),
+        _flow("settings", "flow_1", 50, limits.flow_max, config=True),
+        _flow("settings", "flow_2", 50, limits.flow_max, config=True),
+        _flow("settings", "flow_3", 50, limits.flow_max, config=True),
+        _config_gauge("settings", "bypass_boost_position", 0, 3, 1, None),
+        _config_gauge("settings", "imbalance_intake", -15, 15, 1, PERCENTAGE),
+        _config_gauge("settings", "imbalance_exhaust", -15, 15, 1, PERCENTAGE),
         _config_gauge(
             "settings",
             "bypass_from_dwelling",
-            "Bypass temperature inside",
             15,
             35,
             0.5,
@@ -137,7 +110,6 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
         _config_gauge(
             "settings",
             "bypass_from_outside",
-            "Bypass temperature outside",
             7,
             15,
             0.5,
@@ -146,7 +118,6 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
         _config_gauge(
             "settings",
             "bypass_hysteresis",
-            "Bypass hysteresis",
             0,
             5,
             0.5,
@@ -155,7 +126,6 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
         _config_gauge(
             "settings",
             "frost_control_temperature",
-            "Frost control temperature",
             -1.5,
             1.5,
             0.5,
@@ -164,7 +134,6 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
         _config_gauge(
             "settings",
             "frost_minimum_inlet_temperature",
-            "Frost minimum inlet temperature",
             7,
             17,
             0.5,
@@ -172,7 +141,7 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
         ),
         BrinkNumberDescription(
             key="settings_filter_change_days",
-            name="Filter change days",
+            translation_key="settings_filter_change_days",
             component="settings",
             attribute="filter_change_days",
             native_min_value=0,

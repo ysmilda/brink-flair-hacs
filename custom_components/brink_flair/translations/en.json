@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Device is already configured"
+            "already_configured": "Device is already configured",
+            "unknown": "Unexpected error"
         },
         "error": {
             "cannot_connect": "Failed to connect",
@@ -62,7 +63,148 @@
         }
     },
     "entity": {
+        "binary_sensor": {
+            "status_filter_dirty": {
+                "name": "Filter dirty"
+            }
+        },
+        "button": {
+            "reset_filter": {
+                "name": "Filter reset"
+            }
+        },
+        "number": {
+            "settings_bypass_boost_position": {
+                "name": "Bypass boost position"
+            },
+            "settings_bypass_from_dwelling": {
+                "name": "Bypass temperature inside"
+            },
+            "settings_bypass_from_outside": {
+                "name": "Bypass temperature outside"
+            },
+            "settings_bypass_hysteresis": {
+                "name": "Bypass hysteresis"
+            },
+            "settings_desired_flow_rate": {
+                "name": "Desired flow rate"
+            },
+            "settings_filter_change_days": {
+                "name": "Filter change days"
+            },
+            "settings_flow_0": {
+                "name": "Flow rate step 0"
+            },
+            "settings_flow_1": {
+                "name": "Flow rate step 1"
+            },
+            "settings_flow_2": {
+                "name": "Flow rate step 2"
+            },
+            "settings_flow_3": {
+                "name": "Flow rate step 3"
+            },
+            "settings_frost_control_temperature": {
+                "name": "Frost control temperature"
+            },
+            "settings_frost_minimum_inlet_temperature": {
+                "name": "Frost minimum inlet temperature"
+            },
+            "settings_imbalance_exhaust": {
+                "name": "Exhaust imbalance"
+            },
+            "settings_imbalance_intake": {
+                "name": "Intake imbalance"
+            }
+        },
+        "select": {
+            "settings_control_mode": {
+                "name": "Control mode",
+                "state": {
+                    "off": "Off",
+                    "step": "Step",
+                    "flow": "Flow"
+                }
+            },
+            "settings_level": {
+                "name": "Ventilation level",
+                "state": {
+                    "absence": "Absence",
+                    "low": "Low",
+                    "medium": "Medium",
+                    "high": "High"
+                }
+            },
+            "settings_bypass_mode": {
+                "name": "Bypass mode",
+                "state": {
+                    "auto": "Auto",
+                    "closed": "Closed",
+                    "open": "Open"
+                }
+            }
+        },
         "sensor": {
+            "device_exchange_filter_in": {
+                "name": "Days until filter change"
+            },
+            "device_filter_used_days": {
+                "name": "Filter days used"
+            },
+            "info_device_type": {
+                "name": "Device type"
+            },
+            "measurements_exhaust_fan_rpm": {
+                "name": "Exhaust fan speed"
+            },
+            "measurements_exhaust_pressure": {
+                "name": "Exhaust pressure"
+            },
+            "measurements_exhaust_relative_humidity": {
+                "name": "Exhaust humidity"
+            },
+            "measurements_exhaust_temperature": {
+                "name": "Exhaust temperature"
+            },
+            "measurements_exhaust_volume": {
+                "name": "Exhaust volume"
+            },
+            "measurements_filter_used_hours": {
+                "name": "Filter hours used"
+            },
+            "measurements_filter_used_volume": {
+                "name": "Filter used volume"
+            },
+            "measurements_frost_fan_reduction": {
+                "name": "Frost fan reduction"
+            },
+            "measurements_frost_heater_setpoint": {
+                "name": "Frost heater setpoint"
+            },
+            "measurements_outside_temperature": {
+                "name": "Outside temperature"
+            },
+            "measurements_setpoint_exhaust_volume": {
+                "name": "Exhaust volume setpoint"
+            },
+            "measurements_setpoint_supply_volume": {
+                "name": "Supply volume setpoint"
+            },
+            "measurements_supply_fan_rpm": {
+                "name": "Supply fan speed"
+            },
+            "measurements_supply_pressure": {
+                "name": "Supply pressure"
+            },
+            "measurements_supply_relative_humidity": {
+                "name": "Supply humidity"
+            },
+            "measurements_supply_temperature": {
+                "name": "Supply temperature"
+            },
+            "measurements_supply_volume": {
+                "name": "Supply volume"
+            },
             "status_operation_mode": {
                 "name": "Operating mode",
                 "state": {
@@ -117,32 +259,21 @@
                 }
             }
         },
-        "select": {
-            "settings_control_mode": {
-                "name": "Control mode",
-                "state": {
-                    "off": "Off",
-                    "step": "Step",
-                    "flow": "Flow"
-                }
+        "switch": {
+            "settings_bypass_boost": {
+                "name": "Bypass boost"
             },
-            "settings_level": {
-                "name": "Ventilation level",
-                "state": {
-                    "absence": "Absence",
-                    "low": "Low",
-                    "medium": "Medium",
-                    "high": "High"
-                }
-            },
-            "settings_bypass_mode": {
-                "name": "Bypass mode",
-                "state": {
-                    "auto": "Auto",
-                    "closed": "Closed",
-                    "open": "Open"
-                }
+            "standby": {
+                "name": "Standby"
             }
+        }
+    },
+    "exceptions": {
+        "bypass_override_blocked": {
+            "message": "Bypass override blocked while supply volume is {supply_volume} m³/h"
+        },
+        "communication_error": {
+            "message": "Error communicating with Brink Flair: {error}"
         }
     },
     "selector": {

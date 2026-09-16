@@ -1,7 +1,9 @@
 {
   "domain": "brink_flair",
   "name": "Brink Flair",
-  "codeowners": [],
+  "codeowners": [
+    "@ysmilda"
+  ],
   "config_flow": true,
   "dependencies": [
     "modbus"

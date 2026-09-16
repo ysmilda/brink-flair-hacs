@@ -51,6 +51,7 @@ _GITHUB_MAPPING_EDIT = (
     "brink_flair_modbus/device_types.py"
 )
 
+
 def _unit_id_selector(default: int = DEFAULT_UNIT_ID) -> dict[str, Any]:
     """Return the Modbus unit field shared by every connection form."""
     return {
@@ -58,6 +59,29 @@ def _unit_id_selector(default: int = DEFAULT_UNIT_ID) -> dict[str, Any]:
             NumberSelectorConfig(min=1, max=255, step=1, mode=NumberSelectorMode.BOX)
         )
     }
+
+
+# Connection forms. Reconfiguration pre-fills them via
+# ``add_suggested_values_to_schema``; setups fall back to the ``default`` values.
+STEP_MODBUS_TCP = vol.Schema(
+    {
+        vol.Required(CONF_HOST): str,
+        vol.Required(CONF_PORT, default=DEFAULT_PORT): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=65535)
+        ),
+        **_unit_id_selector(),
+    }
+)
+
+STEP_SERIAL = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE): SerialPortSelector(),
+        vol.Required(CONF_BAUDRATE, default=DEFAULT_BAUDRATE): vol.All(
+            vol.Coerce(int), vol.Range(min=1)
+        ),
+        **_unit_id_selector(),
+    }
+)
 
 
 # Shown only when register 4004 reports an unmapped device type.
@@ -130,6 +154,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
             menu_options=["modbus_tcp", "serial"],
         )
 
+    @override
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -144,44 +169,31 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Configure a Modbus TCP connection."""
         errors: dict[str, str] = {}
-        reconfigure_entry: ConfigEntry | None = None
-        defaults: dict[str, Any] = {}
-        if self.source == SOURCE_RECONFIGURE:
-            reconfigure_entry = self._get_reconfigure_entry()
-            defaults = {
-                CONF_HOST: reconfigure_entry.data.get(CONF_HOST, ""),
-                CONF_PORT: reconfigure_entry.data.get(CONF_PORT, DEFAULT_PORT),
-                CONF_UNIT_ID: reconfigure_entry.data.get(
-                    CONF_UNIT_ID, DEFAULT_UNIT_ID
-                ),
-            }
+        reconfigure_entry = (
+            self._get_reconfigure_entry() if self.source == SOURCE_RECONFIGURE else None
+        )
+
         if user_input is not None:
             data = {
                 CONF_TYPE: CONNECTION_TCP,
                 **user_input,
                 CONF_UNIT_ID: int(user_input[CONF_UNIT_ID]),
             }
-            if reconfigure_entry is not None:
-                return await self._async_update_reconfigured_entry(
-                    reconfigure_entry, data
-                )
-            await self._check_not_configured(data)
-            probe = await self._async_probe(data)
-            if probe is None:
-                errors["base"] = "cannot_connect"
-            else:
-                return await self._async_complete(data, probe)
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_HOST, default=defaults.get(CONF_HOST, "")): str,
-                vol.Required(
-                    CONF_PORT, default=defaults.get(CONF_PORT, DEFAULT_PORT)
-                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=65535)),
-                **_unit_id_selector(defaults.get(CONF_UNIT_ID, DEFAULT_UNIT_ID)),
-            }
-        )
+            result = await self._async_submit_transport(data, reconfigure_entry)
+            if result is not None:
+                return result
+            errors["base"] = "cannot_connect"
+
+        suggested_values = user_input
+        if suggested_values is None and reconfigure_entry is not None:
+            suggested_values = reconfigure_entry.data
+
         return self.async_show_form(
-            step_id="modbus_tcp", data_schema=schema, errors=errors
+            step_id="modbus_tcp",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_MODBUS_TCP, suggested_values
+            ),
+            errors=errors,
         )
 
     async def async_step_serial(
@@ -189,57 +201,43 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Configure a Modbus serial (RTU) connection, incl. network serial proxies."""
         errors: dict[str, str] = {}
-        reconfigure_entry: ConfigEntry | None = None
-        defaults: dict[str, Any] = {}
-        if self.source == SOURCE_RECONFIGURE:
-            reconfigure_entry = self._get_reconfigure_entry()
-            defaults = {
-                CONF_DEVICE: reconfigure_entry.data.get(CONF_DEVICE, ""),
-                CONF_BAUDRATE: reconfigure_entry.data.get(
-                    CONF_BAUDRATE, DEFAULT_BAUDRATE
-                ),
-                CONF_UNIT_ID: reconfigure_entry.data.get(
-                    CONF_UNIT_ID, DEFAULT_UNIT_ID
-                ),
-            }
+        reconfigure_entry = (
+            self._get_reconfigure_entry() if self.source == SOURCE_RECONFIGURE else None
+        )
+
         if user_input is not None:
             data = {
                 CONF_TYPE: CONNECTION_SERIAL,
                 **user_input,
                 CONF_UNIT_ID: int(user_input[CONF_UNIT_ID]),
             }
-            if reconfigure_entry is not None:
-                return await self._async_update_reconfigured_entry(
-                    reconfigure_entry, data
-                )
-            await self._check_not_configured(data)
-            probe = await self._async_probe(data)
-            if probe is None:
-                errors["base"] = "device_not_found"
-            else:
-                return await self._async_complete(data, probe)
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_DEVICE, default=defaults.get(CONF_DEVICE, "")): (
-                    SerialPortSelector()
-                ),
-                vol.Required(
-                    CONF_BAUDRATE, default=defaults.get(CONF_BAUDRATE, DEFAULT_BAUDRATE)
-                ): vol.All(vol.Coerce(int), vol.Range(min=1)),
-                **_unit_id_selector(defaults.get(CONF_UNIT_ID, DEFAULT_UNIT_ID)),
-            }
-        )
+            result = await self._async_submit_transport(data, reconfigure_entry)
+            if result is not None:
+                return result
+            errors["base"] = "device_not_found"
+
+        suggested_values = user_input
+        if suggested_values is None and reconfigure_entry is not None:
+            suggested_values = reconfigure_entry.data
+
         return self.async_show_form(
-            step_id="serial", data_schema=schema, errors=errors
+            step_id="serial",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_SERIAL, suggested_values
+            ),
+            errors=errors,
         )
 
     async def async_step_discovered(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Show the discovered unit, asking for a model when the type is unmapped."""
-        errors: dict[str, str] = {}
         probe = self._probe
-        assert probe is not None
+        if probe is None:
+            # Unreachable in normal flow: only entered right after a probe ran.
+            return self.async_abort(reason="unknown")
+
+        errors: dict[str, str] = {}
         if user_input is not None:
             data = {**self._data}
             if is_known_device_type(probe.device_type):
@@ -252,14 +250,11 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_model"
             else:
                 data[CONF_MODEL] = model
-                return self.async_create_entry(
-                    title=f"Brink Flair {model}", data=data
-                )
-        schema = (
-            STEP_MODEL
-            if not is_known_device_type(probe.device_type)
-            else vol.Schema({})
-        )
+                return self.async_create_entry(title=f"Brink Flair {model}", data=data)
+
+        schema = vol.Schema({})
+        if not is_known_device_type(probe.device_type):
+            schema = STEP_MODEL
         return self.async_show_form(
             step_id="discovered",
             data_schema=schema,
@@ -272,8 +267,26 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
         params = params_from_data(data)
         # Endpoint identifies the device: transport, address, and TCP port.
         endpoint = "-".join(str(part) for part in params.endpoint)
-        await self.async_set_unique_id(f"{endpoint}_{data[CONF_UNIT_ID]}")
+        await self.async_set_unique_id(
+            f"{endpoint}_{data[CONF_UNIT_ID]}", raise_on_progress=False
+        )
         self._abort_if_unique_id_configured()
+
+    async def _async_submit_transport(
+        self, data: dict[str, Any], reconfigure_entry: ConfigEntry | None
+    ) -> ConfigFlowResult | None:
+        """Update or create the entry for ``data``, probing the unit on setup.
+
+        Returns ``None`` when the initial probe failed; the caller then shows
+        the connection error on the transport form.
+        """
+        if reconfigure_entry is not None:
+            return await self._async_update_reconfigured_entry(reconfigure_entry, data)
+        await self._check_not_configured(data)
+        probe = await self._async_probe(data)
+        if probe is None:
+            return None
+        return await self._async_complete(data, probe)
 
     async def _async_update_reconfigured_entry(
         self, entry: ConfigEntry, data: dict[str, Any]
@@ -281,7 +294,7 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
         """Update a reconfigured entry, aborting if it duplicates another entry."""
         endpoint = "-".join(str(part) for part in params_from_data(data).endpoint)
         new_unique_id = f"{endpoint}_{data[CONF_UNIT_ID]}"
-        await self.async_set_unique_id(new_unique_id)
+        await self.async_set_unique_id(new_unique_id, raise_on_progress=False)
         existing = self.hass.config_entries.async_entry_for_domain_unique_id(
             self.handler, new_unique_id
         )

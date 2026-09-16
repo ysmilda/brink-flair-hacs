@@ -14,9 +14,12 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
 from .entity import BrinkEntity
 
+# State arrives through the coordinator; async_update is not used.
+PARALLEL_UPDATES = 0
+
 _DESCRIPTION = BinarySensorEntityDescription(
     key="status_filter_dirty",
-    name="Filter dirty",
+    translation_key="status_filter_dirty",
     device_class=BinarySensorDeviceClass.PROBLEM,
     entity_category=EntityCategory.DIAGNOSTIC,
 )
@@ -45,9 +48,3 @@ class BrinkFilterDirtyBinarySensor(BrinkEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return whether the filter is due for a change."""
         return self.coordinator.device.status.filter_dirty
-
-    @property
-    @override
-    def icon(self) -> str:
-        """Return a filter icon that reflects the current (dirty) state."""
-        return "mdi:filter-remove" if self.is_on else "mdi:air-filter"
