@@ -11,6 +11,17 @@ from homeassistant.components.modbus import async_get_unit
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
+# Import platform modules up front so they load in the import executor (before
+# the config entry forwards hit the event loop), avoiding blocking calls to
+# import_module inside async_forward_entry_setups.
+from . import (
+    binary_sensor as binary_sensor,
+    button as button,
+    number as number,
+    select as select,
+    sensor as sensor,
+    switch as switch,
+)
 from .connection import params_from_data
 from .const import CONF_MODEL, CONF_UNIT_ID
 from .coordinator import BrinkConfigEntry, BrinkCoordinator
