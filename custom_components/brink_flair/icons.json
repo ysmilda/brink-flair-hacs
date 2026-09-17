@@ -1,16 +1,69 @@
 {
   "entity": {
     "binary_sensor": {
+      "extension_contact_1": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "extension_contact_2": {
+        "default": "mdi:gesture-tap-button"
+      },
+      "extension_relay_1": {
+        "default": "mdi:electric-switch-closed"
+      },
+      "extension_relay_2": {
+        "default": "mdi:electric-switch-closed"
+      },
       "status_filter_dirty": {
         "default": "mdi:air-filter",
         "state": {
           "on": "mdi:filter-remove"
         }
+      },
+      "status_signal_output": {
+        "default": "mdi:signal"
       }
     },
     "button": {
       "reset_filter": {
         "default": "mdi:filter-remove"
+      }
+    },
+    "sensor": {
+      "measurements_bypass_step_position": {
+        "default": "mdi:chart-gantt"
+      },
+      "measurements_current_operating_time": {
+        "default": "mdi:timer-outline"
+      },
+      "measurements_extension_analogue_input_1": {
+        "default": "mdi:sine-wave"
+      },
+      "measurements_extension_analogue_input_2": {
+        "default": "mdi:sine-wave"
+      },
+      "measurements_extension_analogue_output_1": {
+        "default": "mdi:sine-wave"
+      },
+      "measurements_extension_analogue_output_2": {
+        "default": "mdi:sine-wave"
+      },
+      "measurements_exhaust_anemometer_rpm": {
+        "default": "mdi:fan-chevron-down"
+      },
+      "measurements_exhaust_mass_flow": {
+        "default": "mdi:scale-balance"
+      },
+      "measurements_preheater_capacity": {
+        "default": "mdi:weather-snowy-heavy"
+      },
+      "measurements_supply_anemometer_rpm": {
+        "default": "mdi:fan-chevron-up"
+      },
+      "measurements_supply_mass_flow": {
+        "default": "mdi:scale-balance"
+      },
+      "measurements_total_flow": {
+        "default": "mdi:chart-line"
       }
     }
   }

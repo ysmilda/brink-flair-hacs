@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any
 from unittest.mock import patch
 
@@ -17,6 +17,7 @@ from custom_components.brink_flair.const import (
 )
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_TYPE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 
 from .fake_device import FakeBrinkFlair
 
@@ -41,7 +42,10 @@ class MockModbusUnit:
 
 
 async def async_setup_brink_flair(
-    hass: HomeAssistant, device: FakeBrinkFlair | None = None
+    hass: HomeAssistant,
+    device: FakeBrinkFlair | None = None,
+    *,
+    pre_enable_keys: Iterable[str] = (),
 ) -> tuple[MockConfigEntry, FakeBrinkFlair]:
     """Set up the integration through its real async_setup_entry path."""
     device = device or FakeBrinkFlair()
@@ -49,6 +53,12 @@ async def async_setup_brink_flair(
         domain=DOMAIN, data=TCP_DATA, unique_id="tcp-127.0.0.1-502_20"
     )
     entry.add_to_hass(hass)
+    if pre_enable_keys:
+        registry = er.async_get(hass)
+        for key in pre_enable_keys:
+            registry.async_get_or_create(
+                "sensor", DOMAIN, f"{entry.entry_id}_{key}", config_entry=entry
+            )
     with (
         patch(
             "custom_components.brink_flair.async_get_unit",

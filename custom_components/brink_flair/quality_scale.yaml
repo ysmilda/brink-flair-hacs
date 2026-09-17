@@ -65,7 +65,7 @@ rules:
   docs-use-cases: done
   dynamic-devices:
     status: exempt
-    comment: This integration has a fixed set of entities.
+    comment: One config entry always maps to one physical unit, so the device set is fixed.
   entity-category: done
   entity-device-class: done
   entity-disabled-by-default: done
@@ -78,7 +78,7 @@ rules:
     comment: This integration does not have any known issues that require repair.
   stale-devices:
     status: exempt
-    comment: This integration has a fixed set of entities; none become stale.
+    comment: Optional entities are removed together with their registry entries when their hardware drops out.
   # Platinum
   async-dependency: done
   inject-websession:

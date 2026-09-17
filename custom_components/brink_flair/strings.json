@@ -64,8 +64,23 @@
   },
   "entity": {
     "binary_sensor": {
+      "measurements_extension_contact_1": {
+        "name": "Extension contact 1"
+      },
+      "measurements_extension_contact_2": {
+        "name": "Extension contact 2"
+      },
+      "measurements_extension_relay_1": {
+        "name": "Extension relay 1"
+      },
+      "measurements_extension_relay_2": {
+        "name": "Extension relay 2"
+      },
       "status_filter_dirty": {
         "name": "Filter dirty"
+      },
+      "status_signal_output": {
+        "name": "Signal output"
       }
     },
     "button": {
@@ -154,8 +169,23 @@
       "info_device_type": {
         "name": "Device type"
       },
+      "measurements_bypass_step_position": {
+        "name": "Bypass step position"
+      },
+      "measurements_current_operating_time": {
+        "name": "Operating time"
+      },
+      "measurements_dwelling_temperature": {
+        "name": "Dwelling temperature"
+      },
+      "measurements_exhaust_anemometer_rpm": {
+        "name": "Exhaust anemometer"
+      },
       "measurements_exhaust_fan_rpm": {
         "name": "Exhaust fan speed"
+      },
+      "measurements_exhaust_mass_flow": {
+        "name": "Exhaust mass flow"
       },
       "measurements_exhaust_pressure": {
         "name": "Exhaust pressure"
@@ -168,6 +198,21 @@
       },
       "measurements_exhaust_volume": {
         "name": "Exhaust volume"
+      },
+      "measurements_extension_analogue_input_1": {
+        "name": "Extension analogue input 1"
+      },
+      "measurements_extension_analogue_input_2": {
+        "name": "Extension analogue input 2"
+      },
+      "measurements_extension_analogue_output_1": {
+        "name": "Extension analogue output 1"
+      },
+      "measurements_extension_analogue_output_2": {
+        "name": "Extension analogue output 2"
+      },
+      "measurements_extension_temperature": {
+        "name": "Extension temperature"
       },
       "measurements_filter_used_hours": {
         "name": "Filter hours used"
@@ -184,14 +229,26 @@
       "measurements_outside_temperature": {
         "name": "Outside temperature"
       },
+      "measurements_preheater_capacity": {
+        "name": "Preheater capacity"
+      },
+      "measurements_rht_humidity": {
+        "name": "Indoor humidity"
+      },
       "measurements_setpoint_exhaust_volume": {
         "name": "Exhaust volume setpoint"
       },
       "measurements_setpoint_supply_volume": {
         "name": "Supply volume setpoint"
       },
+      "measurements_supply_anemometer_rpm": {
+        "name": "Supply anemometer"
+      },
       "measurements_supply_fan_rpm": {
         "name": "Supply fan speed"
+      },
+      "measurements_supply_mass_flow": {
+        "name": "Supply mass flow"
       },
       "measurements_supply_pressure": {
         "name": "Supply pressure"
@@ -205,25 +262,11 @@
       "measurements_supply_volume": {
         "name": "Supply volume"
       },
-      "status_operation_mode": {
-        "name": "Operating mode",
-        "state": {
-          "standby": "Standby",
-          "bootloader": "Bootloader",
-          "non_blocking_error": "Non-blocking error",
-          "blocking_error": "Blocking error",
-          "manual": "Manual",
-          "holiday": "Holiday",
-          "night_ventilation": "Night ventilation",
-          "party": "Party",
-          "bypass_boost": "Bypass boost",
-          "normal_boost": "Normal boost",
-          "auto_co2": "Auto (CO2)",
-          "auto_ebus": "Auto (eBus)",
-          "auto_modbus": "Auto (Modbus)",
-          "auto_lan_wlan_portal": "Auto (LAN/WLAN portal)",
-          "auto_lan_wlan_local": "Auto (LAN/WLAN local)"
-        }
+      "measurements_total_flow": {
+        "name": "Total flow"
+      },
+      "status_active_incident": {
+        "name": "Active incident"
       },
       "status_bypass_status": {
         "name": "Bypass status",
@@ -235,6 +278,102 @@
           "closed": "Closed",
           "error": "Error"
         }
+      },
+      "status_co2_1_status": {
+        "name": "CO2 sensor 1 status",
+        "state": {
+          "error": "Error",
+          "not_initialized": "Not initialized",
+          "idle": "Idle",
+          "warming_up": "Warming up",
+          "running": "Running",
+          "calibrating": "Calibrating",
+          "self_test": "Self test"
+        }
+      },
+      "status_co2_1_value": {
+        "name": "CO2 sensor 1"
+      },
+      "status_co2_2_status": {
+        "name": "CO2 sensor 2 status",
+        "state": {
+          "error": "Error",
+          "not_initialized": "Not initialized",
+          "idle": "Idle",
+          "warming_up": "Warming up",
+          "running": "Running",
+          "calibrating": "Calibrating",
+          "self_test": "Self test"
+        }
+      },
+      "status_co2_2_value": {
+        "name": "CO2 sensor 2"
+      },
+      "status_co2_3_status": {
+        "name": "CO2 sensor 3 status",
+        "state": {
+          "error": "Error",
+          "not_initialized": "Not initialized",
+          "idle": "Idle",
+          "warming_up": "Warming up",
+          "running": "Running",
+          "calibrating": "Calibrating",
+          "self_test": "Self test"
+        }
+      },
+      "status_co2_3_value": {
+        "name": "CO2 sensor 3"
+      },
+      "status_co2_4_status": {
+        "name": "CO2 sensor 4 status",
+        "state": {
+          "error": "Error",
+          "not_initialized": "Not initialized",
+          "idle": "Idle",
+          "warming_up": "Warming up",
+          "running": "Running",
+          "calibrating": "Calibrating",
+          "self_test": "Self test"
+        }
+      },
+      "status_co2_4_value": {
+        "name": "CO2 sensor 4"
+      },
+      "status_ebus_power_status": {
+        "name": "eBus power status",
+        "state": {
+          "power_up": "Power up",
+          "initialize_power": "Initializing power",
+          "power_off": "Power off",
+          "power_on": "Power on",
+          "wait_for_power_off": "Waiting for power off",
+          "slave_power_off": "Slave power off"
+        }
+      },
+      "status_exhaust_fan_status": {
+        "name": "Exhaust fan status",
+        "state": {
+          "no_communication": "No communication",
+          "idle": "Idle",
+          "running": "Running",
+          "blocked": "Blocked",
+          "fan_error": "Fan error"
+        }
+      },
+      "status_fan_control_type": {
+        "name": "Fan control type",
+        "state": {
+          "initializing": "Initializing",
+          "constant_flow": "Constant flow",
+          "constant_pwm": "Constant PWM",
+          "off": "Off",
+          "error": "Error",
+          "mass_balance": "Mass balance",
+          "standby": "Standby"
+        }
+      },
+      "status_flow_switch_position": {
+        "name": "Flow switch position"
       },
       "status_frost_status": {
         "name": "Frost status",
@@ -256,6 +395,72 @@
           "fan_restarting": "Fan restarting",
           "error": "Error",
           "test_modus": "Test mode"
+        }
+      },
+      "status_geo_exchanger_status": {
+        "name": "Geo heat exchanger status",
+        "state": {
+          "open_low": "Open (low)",
+          "closed": "Closed",
+          "open_high": "Open (high)"
+        }
+      },
+      "status_operation_mode": {
+        "name": "Operating mode",
+        "state": {
+          "standby": "Standby",
+          "bootloader": "Bootloader",
+          "non_blocking_error": "Non-blocking error",
+          "blocking_error": "Blocking error",
+          "manual": "Manual",
+          "holiday": "Holiday",
+          "night_ventilation": "Night ventilation",
+          "party": "Party",
+          "bypass_boost": "Bypass boost",
+          "normal_boost": "Normal boost",
+          "auto_co2": "Auto (CO2)",
+          "auto_ebus": "Auto (eBus)",
+          "auto_modbus": "Auto (Modbus)",
+          "auto_lan_wlan_portal": "Auto (LAN/WLAN portal)",
+          "auto_lan_wlan_local": "Auto (LAN/WLAN local)"
+        }
+      },
+      "status_preheater_status": {
+        "name": "Preheater status",
+        "state": {
+          "initialize": "Initializing",
+          "inactive": "Inactive",
+          "active": "Active",
+          "test_mode": "Test mode"
+        }
+      },
+      "status_supply_fan_status": {
+        "name": "Supply fan status",
+        "state": {
+          "no_communication": "No communication",
+          "idle": "Idle",
+          "running": "Running",
+          "blocked": "Blocked",
+          "fan_error": "Fan error"
+        }
+      },
+      "status_system_error": {
+        "name": "System error",
+        "state": {
+          "no_error": "No error",
+          "warning": "Warning",
+          "non_blocking_error": "Non-blocking error",
+          "blocking_error": "Blocking error"
+        }
+      },
+      "status_ventilation_mode": {
+        "name": "Ventilation mode",
+        "state": {
+          "holiday": "Holiday",
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "auto": "Auto"
         }
       }
     },
