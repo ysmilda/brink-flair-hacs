@@ -16,7 +16,7 @@
     "brink_flair_modbus"
   ],
   "requirements": [
-    "brink-flair-modbus==0.1.1"
+    "brink-flair-modbus==0.4.0"
   ],
   "version": "0.1.2"
 }
