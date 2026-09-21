@@ -52,6 +52,29 @@ async def test_setup_registers_measurement_sensors(hass: HomeAssistant) -> None:
     )
     assert None not in registered
 
+    # The extra measurements are disabled by default too, so they only exist
+    # in the entity registry, not in the state machine.
+    registered = _registry_ids(
+        hass,
+        entry.entry_id,
+        [
+            "measurements_supply_mass_flow",
+            "measurements_supply_anemometer_rpm",
+            "measurements_exhaust_mass_flow",
+            "measurements_exhaust_anemometer_rpm",
+            "measurements_bypass_step_position",
+            "measurements_preheater_capacity",
+            "measurements_dwelling_temperature",
+            "measurements_rht_humidity",
+            "measurements_current_operating_time",
+            "measurements_total_flow",
+            "measurements_current_time",
+            "measurements_current_date",
+        ],
+    )
+    assert None not in registered
+    assert hass.states.get("sensor.flair_300_supply_mass_flow") is None
+
     assert hass.states.get("sensor.flair_300_supply_volume") is not None
     assert hass.states.get("sensor.flair_300_exhaust_volume") is not None
     assert hass.states.get("sensor.flair_300_exhaust_pressure") is not None
@@ -84,23 +107,25 @@ async def test_setup_registers_filter_sensors(hass: HomeAssistant) -> None:
 
 async def test_setup_registers_diagnostic_sensors(hass: HomeAssistant) -> None:
     """The diagnostic status and identity sensors are created."""
-    _ = await async_setup_brink_flair(hass)
+    entry, _ = await async_setup_brink_flair(hass)
 
     device_type = hass.states.get("sensor.flair_300_device_type")
     assert device_type is not None
     assert device_type.state == "Flair 300"
 
-    software_version = hass.states.get("sensor.flair_300_software_version")
-    assert software_version is not None
-    assert software_version.state == "S1.01.02.0001"
-
-    hardware_version = hass.states.get("sensor.flair_300_hardware_version")
-    assert hardware_version is not None
-    assert hardware_version.state == "H1.1"
-
-    serial_number = hass.states.get("sensor.flair_300_serial_number")
-    assert serial_number is not None
-    assert serial_number.state == "123456789012"
+    # The version and serial number sensors are disabled by default, so they
+    # only exist in the entity registry, not in the state machine.
+    registered = _registry_ids(
+        hass,
+        entry.entry_id,
+        [
+            "info_software_version",
+            "info_hardware_version",
+            "info_serial_number",
+        ],
+    )
+    assert None not in registered
+    assert hass.states.get("sensor.flair_300_software_version") is None
 
     mode = hass.states.get("sensor.flair_300_operating_mode")
     assert mode is not None

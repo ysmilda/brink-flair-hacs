@@ -163,8 +163,29 @@
       "info_software_version": {
         "name": "Software version"
       },
+      "measurements_bypass_step_position": {
+        "name": "Bypass step position"
+      },
+      "measurements_current_date": {
+        "name": "Current date"
+      },
+      "measurements_current_operating_time": {
+        "name": "Operating time"
+      },
+      "measurements_current_time": {
+        "name": "Current time"
+      },
+      "measurements_dwelling_temperature": {
+        "name": "Dwelling temperature"
+      },
+      "measurements_exhaust_anemometer_rpm": {
+        "name": "Exhaust anemometer speed"
+      },
       "measurements_exhaust_fan_rpm": {
         "name": "Exhaust fan speed"
+      },
+      "measurements_exhaust_mass_flow": {
+        "name": "Exhaust mass flow"
       },
       "measurements_exhaust_pressure": {
         "name": "Exhaust pressure"
@@ -193,14 +214,26 @@
       "measurements_outside_temperature": {
         "name": "Outside temperature"
       },
+      "measurements_preheater_capacity": {
+        "name": "Preheater capacity"
+      },
+      "measurements_rht_humidity": {
+        "name": "Ambient humidity"
+      },
       "measurements_setpoint_exhaust_volume": {
         "name": "Exhaust volume setpoint"
       },
       "measurements_setpoint_supply_volume": {
         "name": "Supply volume setpoint"
       },
+      "measurements_supply_anemometer_rpm": {
+        "name": "Supply anemometer speed"
+      },
       "measurements_supply_fan_rpm": {
         "name": "Supply fan speed"
+      },
+      "measurements_supply_mass_flow": {
+        "name": "Supply mass flow"
       },
       "measurements_supply_pressure": {
         "name": "Supply pressure"
@@ -213,6 +246,9 @@
       },
       "measurements_supply_volume": {
         "name": "Supply volume"
+      },
+      "measurements_total_flow": {
+        "name": "Total flow"
       },
       "status_operation_mode": {
         "name": "Operating mode",
