@@ -90,6 +90,18 @@ async def test_setup_registers_diagnostic_sensors(hass: HomeAssistant) -> None:
     assert device_type is not None
     assert device_type.state == "Flair 300"
 
+    software_version = hass.states.get("sensor.flair_300_software_version")
+    assert software_version is not None
+    assert software_version.state == "S1.01.02.0001"
+
+    hardware_version = hass.states.get("sensor.flair_300_hardware_version")
+    assert hardware_version is not None
+    assert hardware_version.state == "H1.1"
+
+    serial_number = hass.states.get("sensor.flair_300_serial_number")
+    assert serial_number is not None
+    assert serial_number.state == "123456789012"
+
     mode = hass.states.get("sensor.flair_300_operating_mode")
     assert mode is not None
     assert mode.state == "auto_modbus"

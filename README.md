@@ -80,7 +80,8 @@ device still works.
 - **Sensors** — supply/exhaust/outside temperature, supply/exhaust humidity,
   supply/exhaust pressure, setpoint and actual supply/exhaust volume flow,
   both fan speeds, frost heater power and fan reduction, operating mode,
-  bypass and frost status, and the device type.
+  bypass and frost status, the device type, and the software/hardware
+  version and serial number as diagnostics.
 - **Filter** — used hours/volume/days, days until filter change, a filter
   reset button, and a dirty flag (binary sensor).
 - **Controls** — control mode (`Device LCD` / `Modbus Step` / `Modbus Flow`),

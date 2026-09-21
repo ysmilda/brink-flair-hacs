@@ -194,13 +194,6 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
     ),
     _measurement(
         "device",
-        "filter_used_days",
-        state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
-        precision=1,
-    ),
-    _measurement(
-        "device",
         "exchange_filter_in",
         state_class=SensorStateClass.MEASUREMENT,
         diagnostic=True,
@@ -211,6 +204,24 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "model",
         key="info_device_type",
         diagnostic=True,
+    ),
+    _measurement(
+        "info",
+        "software_version",
+        diagnostic=True,
+        entity_registry_enabled_default=False
+    ),
+    _measurement(
+        "info",
+        "hardware_version",
+        diagnostic=True,
+        entity_registry_enabled_default=False
+    ),
+    _measurement(
+        "info",
+        "serial_number",
+        diagnostic=True,
+        entity_registry_enabled_default=False
     ),
 )
 

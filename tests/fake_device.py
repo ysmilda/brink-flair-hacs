@@ -50,6 +50,9 @@ class FakeBrinkFlair:
             manufacturer="Brink",
             model="Flair 300",
             device_type=24,
+            software_version="S1.01.02.0001",
+            hardware_version="H1.1",
+            serial_number="123456789012",
         )
         self.measurements = FakeComponent(
             supply_pressure=150.0,

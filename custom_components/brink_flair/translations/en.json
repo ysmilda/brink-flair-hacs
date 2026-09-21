@@ -154,6 +154,15 @@
             "info_device_type": {
                 "name": "Device type"
             },
+            "info_hardware_version": {
+                "name": "Hardware version"
+            },
+            "info_serial_number": {
+                "name": "Serial number"
+            },
+            "info_software_version": {
+                "name": "Software version"
+            },
             "measurements_exhaust_fan_rpm": {
                 "name": "Exhaust fan speed"
             },
