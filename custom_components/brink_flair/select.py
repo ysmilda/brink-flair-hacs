@@ -77,6 +77,9 @@ class BrinkFlairSelect(BrinkEntity, SelectEntity):
     @override
     def current_option(self) -> str | None:
         """Return the current mode as a lowercase option name."""
+        pending = self.pending_value
+        if pending is not None:
+            return pending
         value = cast(
             IntEnum | None, getattr(self._subsystem, self.entity_description.attribute)
         )
@@ -86,13 +89,20 @@ class BrinkFlairSelect(BrinkEntity, SelectEntity):
 
     @override
     async def async_select_option(self, option: str) -> None:
-        """Write the selected mode to the unit."""
+        """Write the selected mode, showing it optimistically until confirmed."""
         if self.entity_description.attribute == "bypass_mode":
             await self._guard_bypass_override()
         enum_type = self.entity_description.enum_type
-        await self.coordinator.device.settings.write(
-            self.entity_description.attribute, enum_type[option.upper()]
-        )
+        self._pending_write(option)
+        self.async_write_ha_state()
+        try:
+            await self.coordinator.device.settings.write(
+                self.entity_description.attribute, enum_type[option.upper()]
+            )
+        except Exception:
+            self._pending_write(None)
+            self.async_write_ha_state()
+            raise
 
     async def _guard_bypass_override(self) -> None:
         """Block a forced bypass above 200 m³/h supply flow (it would draw cold air in)."""

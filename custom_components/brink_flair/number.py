@@ -179,13 +179,23 @@ class BrinkFlairNumber(BrinkEntity, NumberEntity):
     @property
     @override
     def native_value(self) -> float | None:
+        pending = self.pending_value
+        if pending is not None:
+            return pending
         return cast(
             float | None, getattr(self._subsystem, self.entity_description.attribute)
         )
 
     @override
     async def async_set_native_value(self, value: float) -> None:
-        """Write the value to the unit."""
-        await self.coordinator.device.settings.write(
-            self.entity_description.attribute, value
-        )
+        """Write the value, showing it optimistically until confirmed."""
+        self._pending_write(value)
+        self.async_write_ha_state()
+        try:
+            await self.coordinator.device.settings.write(
+                self.entity_description.attribute, value
+            )
+        except Exception:
+            self._pending_write(None)
+            self.async_write_ha_state()
+            raise

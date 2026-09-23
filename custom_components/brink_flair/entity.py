@@ -1,5 +1,7 @@
 """Base entity for Brink Flair."""
 
+from typing import Any, override
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -15,6 +17,7 @@ class BrinkEntity(CoordinatorEntity[BrinkCoordinator]):
     def __init__(self, coordinator: BrinkCoordinator, key: str, component: str) -> None:
         super().__init__(coordinator)
         self._component = component
+        self._pending_value: Any = None
         entry = coordinator.config_entry
         self._attr_unique_id = f"{entry.entry_id}_{key}"
         info = coordinator.device.info
@@ -24,6 +27,23 @@ class BrinkEntity(CoordinatorEntity[BrinkCoordinator]):
             model=info.model,
             name=info.model,
         )
+
+    @property
+    def pending_value(self) -> Any:
+        """The value of the last write the coordinator has not confirmed yet."""
+        return self._pending_value
+
+    def _pending_write(self, value: Any) -> None:
+        """Show ``value`` in the UI until the next refresh confirms the write.
+
+        Passing ``None`` retracts a pending value, restoring the live reading.
+        """
+        self._pending_value = value
+
+    @override
+    def _handle_coordinator_update(self) -> None:
+        self._pending_value = None
+        super()._handle_coordinator_update()
 
     @property
     def _subsystem(self) -> object:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from brink_flair_modbus import BypassMode, ControlMode
+from modbus_connection import ModbusError
 import pytest
 
 from homeassistant.core import HomeAssistant
@@ -40,6 +41,11 @@ async def test_select_option_writes_enum(hass: HomeAssistant) -> None:
     )
 
     assert device.settings.writes == [("control_mode", ControlMode.FLOW)]
+
+    # The option is already visible before the unit confirms it.
+    state = hass.states.get("select.flair_300_control_mode")
+    assert state is not None
+    assert state.state == "flow"
 
     entry.runtime_data.async_set_updated_data(device)
     await hass.async_block_till_done()
@@ -81,6 +87,10 @@ async def test_bypass_override_allows_low_supply(hass: HomeAssistant) -> None:
 
     assert device.settings.writes == [("bypass_mode", BypassMode.CLOSED)]
 
+    state = hass.states.get("select.flair_300_bypass_mode")
+    assert state is not None
+    assert state.state == "closed"
+
     entry.runtime_data.async_set_updated_data(device)
     await hass.async_block_till_done()
     state = hass.states.get("select.flair_300_bypass_mode")
@@ -101,6 +111,10 @@ async def test_bypass_override_allows_unknown_supply(hass: HomeAssistant) -> Non
     )
 
     assert device.settings.writes == [("bypass_mode", BypassMode.CLOSED)]
+
+    state = hass.states.get("select.flair_300_bypass_mode")
+    assert state is not None
+    assert state.state == "closed"
 
     entry.runtime_data.async_set_updated_data(device)
     await hass.async_block_till_done()
@@ -131,3 +145,27 @@ async def test_select_unknown_option(hass: HomeAssistant) -> None:
     state = hass.states.get("select.flair_300_control_mode")
     assert state is not None
     assert state.state == "unknown"
+
+
+async def test_select_rolls_back_on_write_failure(hass: HomeAssistant) -> None:
+    """A failed write restores the previous option instead of the guessed one."""
+    entry, device = await async_setup_brink_flair(hass)
+    device.settings.fail_writes = True
+
+    with pytest.raises(ModbusError):
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": "select.flair_300_control_mode", "option": "flow"},
+            blocking=True,
+        )
+
+    state = hass.states.get("select.flair_300_control_mode")
+    assert state is not None
+    assert state.state == "step"
+
+    entry.runtime_data.async_set_updated_data(device)
+    await hass.async_block_till_done()
+    state = hass.states.get("select.flair_300_control_mode")
+    assert state is not None
+    assert state.state == "step"

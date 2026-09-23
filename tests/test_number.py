@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from modbus_connection import ModbusError
+import pytest
+
 from homeassistant.core import HomeAssistant
 
 from .platform_setup import async_setup_brink_flair
@@ -45,7 +48,7 @@ async def test_setup_registers_numbers(hass: HomeAssistant) -> None:
 
 
 async def test_set_value_writes_and_updates_state(hass: HomeAssistant) -> None:
-    """Setting a value writes the attribute, the poll then reflects it."""
+    """Setting a value writes the attribute and shows it optimistically."""
     entry, device = await async_setup_brink_flair(hass)
 
     await hass.services.async_call(
@@ -57,8 +60,37 @@ async def test_set_value_writes_and_updates_state(hass: HomeAssistant) -> None:
 
     assert device.settings.writes == [("desired_flow_rate", 260.0)]
 
+    # The value is already visible before the unit confirms it.
+    state = hass.states.get("number.flair_300_desired_flow_rate")
+    assert state is not None
+    assert state.state == "260.0"
+
     entry.runtime_data.async_set_updated_data(device)
     await hass.async_block_till_done()
     state = hass.states.get("number.flair_300_desired_flow_rate")
     assert state is not None
     assert state.state == "260.0"
+
+
+async def test_set_value_rolls_back_on_write_failure(hass: HomeAssistant) -> None:
+    """A failed write restores the previous reading instead of the guessed value."""
+    entry, device = await async_setup_brink_flair(hass)
+    device.settings.fail_writes = True
+
+    with pytest.raises(ModbusError):
+        await hass.services.async_call(
+            "number",
+            "set_value",
+            {"entity_id": "number.flair_300_desired_flow_rate", "value": 260},
+            blocking=True,
+        )
+
+    state = hass.states.get("number.flair_300_desired_flow_rate")
+    assert state is not None
+    assert state.state == "250"
+
+    entry.runtime_data.async_set_updated_data(device)
+    await hass.async_block_till_done()
+    state = hass.states.get("number.flair_300_desired_flow_rate")
+    assert state is not None
+    assert state.state == "250"

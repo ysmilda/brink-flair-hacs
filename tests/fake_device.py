@@ -26,6 +26,7 @@ from brink_flair_modbus import (
     TimeNotation,
     VentilationLevel,
 )
+from modbus_connection import ModbusError
 
 
 class FakeComponent:
@@ -48,10 +49,13 @@ class FakeSettings(FakeComponent):
     def __init__(self, **values: Any) -> None:
         super().__init__(**values)
         self.writes: list[tuple[str, Any]] = []
+        self.fail_writes = False
 
     async def write(self, attribute: str, value: Any) -> None:
-        """Record the write and apply it to the fake register."""
+        """Record the write, optionally failing, then apply it to the fake register."""
         self.writes.append((attribute, value))
+        if self.fail_writes:
+            raise ModbusError("mock write failure")
         setattr(self, attribute, value)
 
 
