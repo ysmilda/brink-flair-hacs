@@ -19,8 +19,10 @@ from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
+    OptionsFlow,
 )
 from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
+from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
     NumberSelector,
@@ -37,11 +39,13 @@ from .const import (
     CONF_BAUDRATE,
     CONF_MODEL,
     CONF_UNIT_ID,
+    CONF_UPDATE_INTERVAL,
     CONNECTION_SERIAL,
     CONNECTION_TCP,
     DEFAULT_BAUDRATE,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
+    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
 
@@ -138,6 +142,12 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Brink Flair."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Return the options flow that tunes the polling interval."""
+        return BrinkOptionsFlow()
 
     def __init__(self) -> None:
         super().__init__()
@@ -325,3 +335,41 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
         self._data = data
         self._probe = probe
         return await self.async_step_discovered()
+
+
+class BrinkOptionsFlow(OptionsFlow):
+    """Adjust how often the integration re-reads the unit."""
+
+    @override
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Collect the polling interval in seconds."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="",
+                data={
+                    CONF_UPDATE_INTERVAL: int(user_input[CONF_UPDATE_INTERVAL]),
+                },
+            )
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_UPDATE_INTERVAL,
+                        default=self.config_entry.options.get(
+                            CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
+                        ),
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=5,
+                            max=3600,
+                            step=5,
+                            mode=NumberSelectorMode.BOX,
+                            unit_of_measurement="s",
+                        )
+                    )
+                }
+            ),
+        )

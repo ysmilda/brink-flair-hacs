@@ -62,6 +62,20 @@
             }
         }
     },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Update interval",
+                "description": "How often the integration re-reads the unit.",
+                "data": {
+                    "update_interval": "Interval"
+                },
+                "data_description": {
+                    "update_interval": "Seconds between polls. Lower values react faster but read the Modbus registers more often (default 30)."
+                }
+            }
+        }
+    },
     "entity": {
         "binary_sensor": {
             "status_filter_dirty": {

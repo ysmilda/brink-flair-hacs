@@ -14,11 +14,13 @@ from custom_components.brink_flair.const import (
     CONF_BAUDRATE,
     CONF_MODEL,
     CONF_UNIT_ID,
+    CONF_UPDATE_INTERVAL,
     CONNECTION_SERIAL,
     CONNECTION_TCP,
     DEFAULT_BAUDRATE,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
+    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
 from homeassistant.config_entries import SOURCE_RECONFIGURE, SOURCE_USER
@@ -459,3 +461,48 @@ async def test_discovered_invalid_model_shows_error(hass: HomeAssistant) -> None
         result = await flow.async_step_discovered({CONF_MODEL: "not-a-model"})
         assert result["type"] == FlowResultType.FORM
         assert result["errors"] == {"base": "invalid_model"}
+
+
+async def _options_default(
+    hass: HomeAssistant, entry_id: str, key: str
+) -> object:
+    """Resolve the pre-filled default the options flow shows for a key."""
+    result = await hass.config_entries.options.async_init(entry_id)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "init"
+    for marker in result["data_schema"].schema:
+        if marker == key and hasattr(marker, "default"):
+            return marker.default()
+    raise AssertionError(f"no default found for {key!r}")
+
+
+async def test_options_flow_sets_update_interval(hass: HomeAssistant) -> None:
+    """The options flow stores the polling interval in the entry options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN, data=TCP_DATA, unique_id="tcp-127.0.0.1-502_20"
+    )
+    entry.add_to_hass(hass)
+
+    default = await _options_default(hass, entry.entry_id, CONF_UPDATE_INTERVAL)
+    assert default == DEFAULT_UPDATE_INTERVAL
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_UPDATE_INTERVAL: 60}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options[CONF_UPDATE_INTERVAL] == 60
+
+
+async def test_options_flow_keeps_existing_interval(hass: HomeAssistant) -> None:
+    """Re-opening the options flow pre-fills the previously stored interval."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=TCP_DATA,
+        options={CONF_UPDATE_INTERVAL: 90},
+        unique_id="tcp-127.0.0.1-502_20",
+    )
+    entry.add_to_hass(hass)
+
+    default = await _options_default(hass, entry.entry_id, CONF_UPDATE_INTERVAL)
+    assert default == 90

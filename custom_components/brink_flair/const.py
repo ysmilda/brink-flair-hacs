@@ -1,6 +1,5 @@
 """Constants for the Brink Flair integration."""
 
-from datetime import timedelta
 from typing import Final
 
 DOMAIN: Final = "brink_flair"
@@ -20,4 +19,5 @@ CONF_BAUDRATE: Final = "baudrate"
 DEFAULT_PORT: Final = 502
 DEFAULT_BAUDRATE: Final = 19200  # the unit's factory line setting
 
-SCAN_INTERVAL: Final = timedelta(seconds=30)
+CONF_UPDATE_INTERVAL: Final = "update_interval"
+DEFAULT_UPDATE_INTERVAL: Final = 30  # seconds between polls

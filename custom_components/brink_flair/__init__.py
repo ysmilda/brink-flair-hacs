@@ -44,8 +44,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: BrinkConfigEntry) -> boo
         )
     )
 
+    # Adopt an interval changed through the options flow without reloading.
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def _async_update_listener(hass: HomeAssistant, entry: BrinkConfigEntry) -> None:
+    """Apply the polling interval whenever the config entry is updated."""
+    entry.runtime_data.apply_options()
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: BrinkConfigEntry) -> bool:
