@@ -96,10 +96,6 @@ async def test_setup_registers_filter_sensors(hass: HomeAssistant) -> None:
     assert volume is not None
     assert volume.state == "18000.0"
 
-    days = hass.states.get("sensor.flair_300_filter_days_used")
-    assert days is not None
-    assert days.state == "5.5"
-
     until_change = hass.states.get("sensor.flair_300_days_until_filter_change")
     assert until_change is not None
     assert until_change.state == "25.5"

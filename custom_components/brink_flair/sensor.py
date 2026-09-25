@@ -74,7 +74,7 @@ def _measurement(
     device_class: SensorDeviceClass | None = None,
     native_unit_of_measurement: str | None = None,
     state_class: SensorStateClass | None = None,
-    diagnostic: bool = False,
+    entity_category: EntityCategory | None = None,
     entity_registry_enabled_default: bool = True,
     precision: int | None = None,
     key: str | None = None,
@@ -90,7 +90,7 @@ def _measurement(
         native_unit_of_measurement=native_unit_of_measurement,
         state_class=state_class,
         options=options,
-        entity_category=EntityCategory.DIAGNOSTIC if diagnostic else None,
+        entity_category=entity_category,
         entity_registry_enabled_default=entity_registry_enabled_default,
         suggested_display_precision=precision,
     )
@@ -117,7 +117,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
@@ -168,7 +168,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
@@ -217,7 +217,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "measurements",
         "bypass_step_position",
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
@@ -225,7 +225,7 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "preheater_capacity",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
@@ -233,14 +233,14 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "frost_heater_setpoint",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     _measurement(
         "measurements",
         "frost_fan_reduction",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     _measurement(
         "measurements",
@@ -272,21 +272,21 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "measurements",
         "filter_used_hours",
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     _measurement(
         "measurements",
         "filter_used_volume",
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     _measurement(
         "measurements",
         "current_operating_time",
         native_unit_of_measurement="h",
         state_class=SensorStateClass.TOTAL_INCREASING,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
@@ -294,50 +294,50 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "total_flow",
         native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
         "measurements",
         "current_time",
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
         "measurements",
         "current_date",
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
     _measurement(
         "device",
         "exchange_filter_in",
         state_class=SensorStateClass.MEASUREMENT,
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         precision=1,
     ),
     _measurement(
         "info",
         "model",
         key="info_device_type",
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     _measurement(
         "info",
         "software_version",
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False
     ),
     _measurement(
         "info",
         "hardware_version",
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False
     ),
     _measurement(
         "info",
         "serial_number",
-        diagnostic=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False
     ),
 )
@@ -351,13 +351,13 @@ def _setting(
     precision: int | None = None,
     options: list[str] | None = None,
 ) -> BrinkSensorDescription:
-    """Describe one writable settings field as a diagnostic sensor."""
+    """Describe one writable settings field as a config sensor."""
     return _measurement(
         "settings",
         attribute,
         device_class=device_class,
         native_unit_of_measurement=native_unit_of_measurement,
-        diagnostic=True,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_enabled_default=False,
         precision=precision,
         options=options,
