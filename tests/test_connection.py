@@ -9,9 +9,11 @@ from modbus_connection import ModbusSerialParams, ModbusTcpParams
 from custom_components.brink_flair.connection import params_from_data
 from custom_components.brink_flair.const import (
     CONF_BAUDRATE,
+    CONF_PARITY,
     CONF_UNIT_ID,
     CONNECTION_SERIAL,
     CONNECTION_TCP,
+    DEFAULT_PARITY,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
 )
@@ -48,6 +50,34 @@ def test_serial_params() -> None:
     assert params.parity == "E"
     assert params.stopbits == 1
     assert params.framer == "rtu"
+
+
+def test_serial_params_honour_configured_parity() -> None:
+    """The unit's configured parity drives the serial port, not a hardcoded 'E'."""
+    data: dict[str, Any] = {
+        CONF_TYPE: CONNECTION_SERIAL,
+        CONF_DEVICE: "/dev/ttyUSB0",
+        CONF_BAUDRATE: 9600,
+        CONF_PARITY: "O",
+        CONF_UNIT_ID: DEFAULT_UNIT_ID,
+    }
+    params = params_from_data(data)
+    assert isinstance(params, ModbusSerialParams)
+    assert params.parity == "O"
+    assert params.baudrate == 9600
+
+
+def test_serial_params_fall_back_for_legacy_entries() -> None:
+    """Entries written before the line settings existed still build valid params."""
+    data: dict[str, Any] = {
+        CONF_TYPE: CONNECTION_SERIAL,
+        CONF_DEVICE: "/dev/ttyUSB0",
+        CONF_BAUDRATE: 19200,
+        CONF_UNIT_ID: DEFAULT_UNIT_ID,
+    }
+    params = params_from_data(data)
+    assert isinstance(params, ModbusSerialParams)
+    assert params.parity == DEFAULT_PARITY
 
 
 def test_tcp_params_defaults_framer() -> None:

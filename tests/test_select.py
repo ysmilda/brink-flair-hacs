@@ -6,8 +6,11 @@ from brink_flair_modbus import BypassMode, ControlMode
 from modbus_connection import ModbusError
 import pytest
 
+from custom_components.brink_flair.const import DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.entity import EntityCategory
 
 from .platform_setup import async_setup_brink_flair
 
@@ -27,6 +30,54 @@ async def test_setup_registers_selects(hass: HomeAssistant) -> None:
     bypass = hass.states.get("select.flair_300_bypass_mode")
     assert bypass is not None
     assert bypass.state == "auto"
+
+
+async def test_setup_registers_config_selects(hass: HomeAssistant) -> None:
+    """The remaining enum settings are writable CONFIG selects."""
+    _ = await async_setup_brink_flair(hass)
+
+    fan_method = hass.states.get("select.flair_300_fan_control_method")
+    assert fan_method is not None
+    assert fan_method.state == "constant_flow"
+    assert "constant_flow" in fan_method.attributes["options"]
+
+    language = hass.states.get("select.flair_300_unit_language")
+    assert language is not None
+    assert language.state == "english"
+
+    digit_in_1 = hass.states.get("select.flair_300_digital_input_1_function")
+    assert digit_in_1 is not None
+    assert digit_in_1.state == "on"
+
+    assert hass.states.get("select.flair_300_date_format") is not None
+    assert hass.states.get("select.flair_300_time_notation") is not None
+    assert hass.states.get("select.flair_300_signal_output_function") is not None
+    assert hass.states.get("select.flair_300_external_heater_mode") is not None
+    assert hass.states.get("select.flair_300_digital_input_1_supply_fan") is not None
+    assert hass.states.get("select.flair_300_digital_input_1_exhaust_fan") is not None
+    assert hass.states.get("select.flair_300_digital_input_2_function") is not None
+    assert hass.states.get("select.flair_300_digital_input_2_supply_fan") is not None
+    assert hass.states.get("select.flair_300_digital_input_2_exhaust_fan") is not None
+    assert hass.states.get("select.flair_300_geo_valve_default_position") is not None
+    assert hass.states.get("select.flair_300_geo_valve_output") is not None
+
+
+async def test_config_selects_are_config_category(hass: HomeAssistant) -> None:
+    """Every settings select is a CONFIG entity, not diagnostic."""
+    entry, _ = await async_setup_brink_flair(hass)
+
+    registry = er.async_get(hass)
+    for unique_id in (
+        "settings_control_mode",
+        "settings_flow_type",
+        "settings_language",
+        "settings_geo_valve_output",
+    ):
+        entity_id = registry.async_get_entity_id(
+            "select", DOMAIN, f"{entry.entry_id}_{unique_id}"
+        )
+        assert entity_id is not None, unique_id
+        assert registry.async_get(entity_id).entity_category is EntityCategory.CONFIG
 
 
 async def test_select_option_writes_enum(hass: HomeAssistant) -> None:

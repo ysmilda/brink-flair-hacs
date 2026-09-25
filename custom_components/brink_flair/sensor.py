@@ -1,29 +1,16 @@
 """Sensor platform — measured values and diagnostic status of the Brink Flair unit."""
 
 from dataclasses import dataclass
+from datetime import date, time
 from enum import IntEnum
-from typing import cast, override
+from typing import Any, cast, override
 
 from brink_flair_modbus import (
-    BypassMode,
     BypassStatus,
-    ControlMode,
-    DateFormat,
-    DigitalInputFunction,
-    ExternalHeaterMode,
-    FanFunction,
-    FlowType,
     FrostStatus,
-    GeoValveOutput,
-    GeoValvePosition,
-    Language,
-    ModbusInterfaceType,
     ModbusParity,
     ModbusSpeed,
     OperatingMode,
-    SignalOutputFunction,
-    TimeNotation,
-    VentilationLevel,
 )
 
 from homeassistant.components.sensor import (
@@ -35,7 +22,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     PERCENTAGE,
     EntityCategory,
-    UnitOfElectricPotential,
     UnitOfPressure,
     UnitOfTemperature,
     UnitOfVolumeFlowRate,
@@ -326,19 +312,19 @@ _MEASUREMENTS: tuple[BrinkSensorDescription, ...] = (
         "info",
         "software_version",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False
+        entity_registry_enabled_default=False,
     ),
     _measurement(
         "info",
         "hardware_version",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False
+        entity_registry_enabled_default=False,
     ),
     _measurement(
         "info",
         "serial_number",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False
+        entity_registry_enabled_default=False,
     ),
 )
 
@@ -351,13 +337,18 @@ def _setting(
     precision: int | None = None,
     options: list[str] | None = None,
 ) -> BrinkSensorDescription:
-    """Describe one writable settings field as a config sensor."""
+    """Describe one writable settings field as a diagnostic sensor.
+
+    The sensor platform forbids EntityCategory.CONFIG, so the writable CONFIG
+    entities live in number.py and select.py; this read-only mirror stays
+    diagnostic.
+    """
     return _measurement(
         "settings",
         attribute,
         device_class=device_class,
         native_unit_of_measurement=native_unit_of_measurement,
-        entity_category=EntityCategory.CONFIG,
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         precision=precision,
         options=options,
@@ -365,213 +356,10 @@ def _setting(
 
 
 _SETTINGS: tuple[BrinkSensorDescription, ...] = (
-    _setting("pwm_inlet_0", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_exhaust_0", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_inlet_1", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_exhaust_1", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_inlet_2", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_exhaust_2", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_inlet_3", native_unit_of_measurement=PERCENTAGE),
-    _setting("pwm_exhaust_3", native_unit_of_measurement=PERCENTAGE),
-    _setting(
-        "flow_0",
-        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
-        native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
-    ),
-    _setting(
-        "flow_1",
-        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
-        native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
-    ),
-    _setting(
-        "flow_2",
-        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
-        native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
-    ),
-    _setting(
-        "flow_3",
-        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
-        native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
-    ),
-    _setting(
-        "desired_flow_rate",
-        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
-        native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
-    ),
-    _setting("flow_type", device_class=SensorDeviceClass.ENUM, options=_options(FlowType)),
-    _setting("switch_default_position"),
-    _setting("display_as_switch"),
-    _setting("imbalance_allowed"),
-    _setting("imbalance_value", native_unit_of_measurement=PERCENTAGE),
-    _setting("imbalance_intake", native_unit_of_measurement=PERCENTAGE, precision=1),
-    _setting("imbalance_exhaust", native_unit_of_measurement=PERCENTAGE, precision=1),
-    _setting(
-        "bypass_mode",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(BypassMode),
-    ),
-    _setting(
-        "bypass_from_dwelling",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting(
-        "bypass_from_outside",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting(
-        "bypass_hysteresis",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting("bypass_boost"),
-    _setting("bypass_boost_position"),
-    _setting(
-        "frost_control_temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting(
-        "frost_minimum_inlet_temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting("filter_change_days"),
-    _setting(
-        "external_heater_mode",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(ExternalHeaterMode),
-    ),
-    _setting(
-        "postheater_setpoint",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting("rht_sensor_mode"),
-    _setting("rht_sensor_sensitivity"),
-    _setting("co2_sensor_mode"),
-    _setting("co2_1_low_level", native_unit_of_measurement="ppm"),
-    _setting("co2_1_high_level", native_unit_of_measurement="ppm"),
-    _setting("co2_2_low_level", native_unit_of_measurement="ppm"),
-    _setting("co2_2_high_level", native_unit_of_measurement="ppm"),
-    _setting("co2_3_low_level", native_unit_of_measurement="ppm"),
-    _setting("co2_3_high_level", native_unit_of_measurement="ppm"),
-    _setting("co2_4_low_level", native_unit_of_measurement="ppm"),
-    _setting("co2_4_high_level", native_unit_of_measurement="ppm"),
-    _setting(
-        "signal_output_function",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(SignalOutputFunction),
-    ),
-    _setting("cv_connected"),
-    _setting("digital_input_1_closed"),
-    _setting(
-        "digital_input_1_function",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(DigitalInputFunction),
-    ),
-    _setting(
-        "digital_input_1_supply_fan",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(FanFunction),
-    ),
-    _setting(
-        "digital_input_1_exhaust_fan",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(FanFunction),
-    ),
-    _setting("digital_input_2_closed"),
-    _setting(
-        "digital_input_2_function",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(DigitalInputFunction),
-    ),
-    _setting(
-        "digital_input_2_supply_fan",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(FanFunction),
-    ),
-    _setting(
-        "digital_input_2_exhaust_fan",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(FanFunction),
-    ),
-    _setting("analogue_input_1_mode"),
-    _setting(
-        "analogue_input_1_vmin",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        precision=1,
-    ),
-    _setting(
-        "analogue_input_1_vmax",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        precision=1,
-    ),
-    _setting("analogue_input_2_mode"),
-    _setting(
-        "analogue_input_2_vmin",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        precision=1,
-    ),
-    _setting(
-        "analogue_input_2_vmax",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        precision=1,
-    ),
-    _setting("geo_exchanger"),
-    _setting(
-        "geo_minimum_temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting(
-        "geo_maximum_temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        precision=1,
-    ),
-    _setting(
-        "geo_valve_default_position",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(GeoValvePosition),
-    ),
-    _setting(
-        "geo_valve_output",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(GeoValveOutput),
-    ),
-    _setting(
-        "language",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(Language),
-    ),
-    _setting(
-        "date_format",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(DateFormat),
-    ),
-    _setting(
-        "time_notation",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(TimeNotation),
-    ),
-    _setting("clock_month_day"),
-    _setting("clock_year"),
-    _setting("clock_time"),
-    _setting("clock_day_seconds"),
-    _setting(
-        "modbus_interface_type",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(ModbusInterfaceType),
-    ),
+    # The Modbus link settings are configured in the config flow instead: writing
+    # the station address or line speed from an entity moves the unit out from
+    # under the open connection with nothing left to reconnect it. These stay
+    # read-only so the unit's actual settings stay visible for diagnosis.
     _setting("modbus_slave_address"),
     _setting(
         "modbus_speed",
@@ -582,16 +370,6 @@ _SETTINGS: tuple[BrinkSensorDescription, ...] = (
         "modbus_parity",
         device_class=SensorDeviceClass.ENUM,
         options=_options(ModbusParity),
-    ),
-    _setting(
-        "control_mode",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(ControlMode),
-    ),
-    _setting(
-        "level",
-        device_class=SensorDeviceClass.ENUM,
-        options=_options(VentilationLevel),
     ),
 )
 
@@ -619,6 +397,17 @@ _STATUS: tuple[BrinkSensorDescription, ...] = (
     _enum_sensor("status", "frost_status", _FROST),
 )
 
+# The four settings registers the unit splits its clock across. The weekday and
+# seconds register is kept in the raw attributes but deliberately left out of
+# the decoded value: the unit packs it ambiguously, and guessing risks showing
+# a plausible but wrong time.
+_CLOCK_FIELDS: tuple[str, ...] = (
+    "clock_month_day",
+    "clock_year",
+    "clock_time",
+    "clock_day_seconds",
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -627,10 +416,91 @@ async def async_setup_entry(
 ) -> None:
     """Set up Brink Flair sensors."""
     coordinator = entry.runtime_data
-    entities: list[BrinkSensor] = [
+    entities: list[SensorEntity] = [
         BrinkSensor(coordinator, d) for d in (*_MEASUREMENTS, *_STATUS, *_SETTINGS)
     ]
+    entities.append(BrinkClockSensor(coordinator))
     async_add_entities(entities)
+
+
+def _bcd(value: int) -> int | None:
+    """Decode one packed BCD byte, or ``None`` when it is not valid BCD."""
+    tens, ones = divmod(value, 16)
+    return tens * 10 + ones if ones <= 9 else None
+
+
+@dataclass(frozen=True, kw_only=True)
+class BrinkClockDescription(SensorEntityDescription):
+    """Describes the unit clock, assembled from four packed settings registers."""
+
+    key: str = "settings_clock"
+    translation_key: str = "settings_clock"
+    entity_category: EntityCategory = EntityCategory.DIAGNOSTIC
+    entity_registry_enabled_default: bool = False
+
+
+_CLOCK = BrinkClockDescription()
+
+
+class BrinkClockSensor(BrinkEntity, SensorEntity):
+    """The unit's clock, decoded from the four packed settings registers.
+
+    The unit stores the date and time as byte pairs, so the raw values are not
+    meaningful on their own. Decoding is deliberately strict: a register that
+    does not hold a plausible component makes the whole reading unavailable
+    rather than reporting a made-up time, since a wrong clock is worse than a
+    missing one when diagnosing a unit.
+    """
+
+    _attr_has_entity_name = True
+    entity_description = _CLOCK
+
+    def __init__(self, coordinator: BrinkCoordinator) -> None:
+        super().__init__(coordinator, _CLOCK.key, "settings")
+
+    @property
+    @override
+    def native_value(self) -> str | None:
+        """Return the decoded clock as ``YYYY-MM-DD HH:MM``, if it is coherent."""
+        return self._decoded
+
+    @property
+    @override
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Expose the raw registers, so an implausible decode can be inspected."""
+        settings = self._subsystem
+        return {
+            field: getattr(settings, field)
+            for field in _CLOCK_FIELDS
+            if getattr(settings, field, None) is not None
+        }
+
+    @property
+    def _decoded(self) -> str | None:
+        """Return the decoded clock, or ``None`` when it cannot be trusted."""
+        settings = self._subsystem
+        month_day = getattr(settings, "clock_month_day", None)
+        year = getattr(settings, "clock_year", None)
+        clock_time = getattr(settings, "clock_time", None)
+        if month_day is None or year is None or clock_time is None:
+            return None
+
+        month = _bcd(month_day >> 8)
+        day = _bcd(month_day & 0xFF)
+        hour = _bcd(clock_time >> 8)
+        minute = _bcd(clock_time & 0xFF)
+        if month is None or day is None or hour is None or minute is None:
+            return None
+        try:
+            # date and time validate the decoded parts, rejecting impossible
+            # values such as the 30th of February or 25:70.
+            decoded_date = date(int(year), month, day)
+            decoded_time = time(hour, minute)
+        except ValueError:
+            return None
+        return (
+            f"{decoded_date.isoformat()} {decoded_time.isoformat(timespec='minutes')}"
+        )
 
 
 class BrinkSensor(BrinkEntity, SensorEntity):

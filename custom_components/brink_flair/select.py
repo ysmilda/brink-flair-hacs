@@ -1,12 +1,27 @@
-"""Select platform — control mode and ventilation level of the Brink Flair unit."""
+"""Select platform — writable enum settings of the Brink Flair unit."""
 
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import cast, override
 
-from brink_flair_modbus import BypassMode, ControlMode, VentilationLevel
+from brink_flair_modbus import (
+    BypassMode,
+    ControlMode,
+    DateFormat,
+    DigitalInputFunction,
+    ExternalHeaterMode,
+    FanFunction,
+    FlowType,
+    GeoValveOutput,
+    GeoValvePosition,
+    Language,
+    SignalOutputFunction,
+    TimeNotation,
+    VentilationLevel,
+)
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -40,6 +55,7 @@ def _select(
         attribute=attribute,
         enum_type=enum_type,
         options=[option.name.lower() for option in enum_type],
+        entity_category=EntityCategory.CONFIG,
     )
 
 
@@ -47,6 +63,20 @@ _DESCRIPTIONS: tuple[BrinkSelectDescription, ...] = (
     _select("settings", "control_mode", ControlMode),
     _select("settings", "level", VentilationLevel),
     _select("settings", "bypass_mode", BypassMode),
+    _select("settings", "flow_type", FlowType),
+    _select("settings", "external_heater_mode", ExternalHeaterMode),
+    _select("settings", "signal_output_function", SignalOutputFunction),
+    _select("settings", "digital_input_1_function", DigitalInputFunction),
+    _select("settings", "digital_input_1_supply_fan", FanFunction),
+    _select("settings", "digital_input_1_exhaust_fan", FanFunction),
+    _select("settings", "digital_input_2_function", DigitalInputFunction),
+    _select("settings", "digital_input_2_supply_fan", FanFunction),
+    _select("settings", "digital_input_2_exhaust_fan", FanFunction),
+    _select("settings", "geo_valve_default_position", GeoValvePosition),
+    _select("settings", "geo_valve_output", GeoValveOutput),
+    _select("settings", "language", Language),
+    _select("settings", "date_format", DateFormat),
+    _select("settings", "time_notation", TimeNotation),
 )
 
 

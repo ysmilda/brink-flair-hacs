@@ -1,5 +1,6 @@
 """Config flow for Brink Flair."""
 
+from collections.abc import Mapping
 from typing import Any, override
 from urllib.parse import urlencode
 
@@ -36,17 +37,21 @@ from homeassistant.helpers.selector import (
 
 from .connection import params_from_data
 from .const import (
+    BAUDRATES,
     CONF_BAUDRATE,
     CONF_MODEL,
+    CONF_PARITY,
     CONF_UNIT_ID,
     CONF_UPDATE_INTERVAL,
     CONNECTION_SERIAL,
     CONNECTION_TCP,
     DEFAULT_BAUDRATE,
+    DEFAULT_PARITY,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
+    PARITIES,
 )
 
 _GITHUB_ISSUES_NEW = "https://github.com/ysmilda/brink-flair-modbus/issues/new"
@@ -56,7 +61,7 @@ _GITHUB_MAPPING_EDIT = (
 )
 
 
-def _unit_id_selector(default: int = DEFAULT_UNIT_ID) -> dict[str, Any]:
+def _unit_id_selector(default: int = DEFAULT_UNIT_ID) -> dict[Any, Any]:
     """Return the Modbus unit field shared by every connection form."""
     return {
         vol.Required(CONF_UNIT_ID, default=default): NumberSelector(
@@ -80,10 +85,21 @@ STEP_MODBUS_TCP = vol.Schema(
 STEP_SERIAL = vol.Schema(
     {
         vol.Required(CONF_DEVICE): SerialPortSelector(),
-        vol.Required(CONF_BAUDRATE, default=DEFAULT_BAUDRATE): vol.All(
-            vol.Coerce(int), vol.Range(min=1)
-        ),
         **_unit_id_selector(),
+        vol.Required(CONF_BAUDRATE, default=str(DEFAULT_BAUDRATE)): SelectSelector(
+            SelectSelectorConfig(
+                options=[str(baudrate) for baudrate in BAUDRATES],
+                mode=SelectSelectorMode.DROPDOWN,
+                translation_key=CONF_BAUDRATE,
+            )
+        ),
+        vol.Required(CONF_PARITY, default=DEFAULT_PARITY): SelectSelector(
+            SelectSelectorConfig(
+                options=list(PARITIES),
+                mode=SelectSelectorMode.DROPDOWN,
+                translation_key=CONF_PARITY,
+            )
+        ),
     }
 )
 
@@ -310,11 +326,13 @@ class BrinkConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         if existing is not None and existing.entry_id != entry.entry_id:
             return self.async_abort(reason="already_configured")
+        # The unit's own line settings have to reach the device over the link that
+        # is still working, before the entry starts using the new ones.
         return self.async_update_reload_and_abort(
             entry=entry, data={**entry.data, **data}, unique_id=new_unique_id
         )
 
-    async def _async_probe(self, data: dict[str, Any]) -> BrinkProbe | None:
+    async def _async_probe(self, data: Mapping[str, Any]) -> BrinkProbe | None:
         """Read the identity register through a temporary connection."""
         try:
             async with async_get_temporary_unit(

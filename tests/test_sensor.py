@@ -2,10 +2,21 @@
 
 from __future__ import annotations
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from .platform_setup import async_setup_brink_flair
+
+
+def _entity_id(hass: HomeAssistant, entry: MockConfigEntry, key: str) -> str:
+    """Return the entity id registered for a unique id, whatever it was named."""
+    entity_id = er.async_get(hass).async_get_entity_id(
+        "sensor", "brink_flair", f"{entry.entry_id}_{key}"
+    )
+    assert entity_id is not None, f"{key} was not registered"
+    return entity_id
 
 
 def _registry_ids(hass: HomeAssistant, entry_id: str, keys: list[str]) -> set[str]:
@@ -102,93 +113,105 @@ async def test_setup_registers_filter_sensors(hass: HomeAssistant) -> None:
 
 
 async def test_setup_registers_settings_sensors(hass: HomeAssistant) -> None:
-    """The settings sensors are registered but disabled by default."""
+    """The Modbus link settings are disabled diagnostic sensors."""
     entry, _ = await async_setup_brink_flair(hass)
 
     registered = _registry_ids(
         hass,
         entry.entry_id,
         [
-            "settings_analogue_input_1_mode",
-            "settings_analogue_input_1_vmax",
-            "settings_analogue_input_1_vmin",
-            "settings_analogue_input_2_mode",
-            "settings_analogue_input_2_vmax",
-            "settings_analogue_input_2_vmin",
-            "settings_bypass_boost",
-            "settings_bypass_boost_position",
-            "settings_bypass_from_dwelling",
-            "settings_bypass_from_outside",
-            "settings_bypass_hysteresis",
-            "settings_bypass_mode",
-            "settings_clock_day_seconds",
-            "settings_clock_month_day",
-            "settings_clock_time",
-            "settings_clock_year",
-            "settings_co2_1_high_level",
-            "settings_co2_1_low_level",
-            "settings_co2_2_high_level",
-            "settings_co2_2_low_level",
-            "settings_co2_3_high_level",
-            "settings_co2_3_low_level",
-            "settings_co2_4_high_level",
-            "settings_co2_4_low_level",
-            "settings_co2_sensor_mode",
-            "settings_control_mode",
-            "settings_cv_connected",
-            "settings_date_format",
-            "settings_desired_flow_rate",
-            "settings_digital_input_1_closed",
-            "settings_digital_input_1_exhaust_fan",
-            "settings_digital_input_1_function",
-            "settings_digital_input_1_supply_fan",
-            "settings_digital_input_2_closed",
-            "settings_digital_input_2_exhaust_fan",
-            "settings_digital_input_2_function",
-            "settings_digital_input_2_supply_fan",
-            "settings_display_as_switch",
-            "settings_external_heater_mode",
-            "settings_filter_change_days",
-            "settings_flow_0",
-            "settings_flow_1",
-            "settings_flow_2",
-            "settings_flow_3",
-            "settings_flow_type",
-            "settings_frost_control_temperature",
-            "settings_frost_minimum_inlet_temperature",
-            "settings_geo_exchanger",
-            "settings_geo_maximum_temperature",
-            "settings_geo_minimum_temperature",
-            "settings_geo_valve_default_position",
-            "settings_geo_valve_output",
-            "settings_imbalance_allowed",
-            "settings_imbalance_exhaust",
-            "settings_imbalance_intake",
-            "settings_imbalance_value",
-            "settings_language",
-            "settings_level",
-            "settings_modbus_interface_type",
             "settings_modbus_parity",
             "settings_modbus_slave_address",
             "settings_modbus_speed",
-            "settings_postheater_setpoint",
-            "settings_pwm_exhaust_0",
-            "settings_pwm_exhaust_1",
-            "settings_pwm_exhaust_2",
-            "settings_pwm_exhaust_3",
-            "settings_pwm_inlet_0",
-            "settings_pwm_inlet_1",
-            "settings_pwm_inlet_2",
-            "settings_pwm_inlet_3",
-            "settings_rht_sensor_mode",
-            "settings_rht_sensor_sensitivity",
-            "settings_signal_output_function",
-            "settings_switch_default_position",
-            "settings_time_notation",
         ],
     )
     assert None not in registered
-    assert hass.states.get("sensor.flair_300_flow_type") is None
+    assert hass.states.get("sensor.flair_300_modbus_slave_address") is None
+
+
+async def test_clock_is_decoded_into_one_diagnostic_sensor(
+    hass: HomeAssistant,
+) -> None:
+    """The four packed clock registers surface as a single parsed reading."""
+    entry, _ = await async_setup_brink_flair(hass, enable=["settings_clock"])
+    entity_id = _entity_id(hass, entry, "settings_clock")
+
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "2026-07-22 05:41"
+    assert state.attributes["clock_month_day"] == 1826
+    assert state.attributes["clock_year"] == 2026
+    assert state.attributes["clock_time"] == 1345
+    assert state.attributes["clock_day_seconds"] == 3600
+
+    registry = er.async_get(hass)
+    for suffix in (
+        "clock_month_day",
+        "clock_year",
+        "clock_time",
+        "clock_day_seconds",
+    ):
+        assert (
+            registry.async_get_entity_id(
+                "sensor", "brink_flair", f"{entry.entry_id}_settings_{suffix}"
+            )
+            is None
+        ), f"settings_{suffix} must be folded into the single clock sensor"
+
+
+async def test_clock_is_unavailable_when_the_registers_are_not_coherent(
+    hass: HomeAssistant,
+) -> None:
+    """A packed register that cannot be a time leaves the clock unknown."""
+    entry, device = await async_setup_brink_flair(hass, enable=["settings_clock"])
+    entity_id = _entity_id(hass, entry, "settings_clock")
+
+    device.settings.clock_month_day = 0x1A22  # 26 is not a valid BCD month.
+    entry.runtime_data.async_set_updated_data(device)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "unknown"
+    # The raw registers stay visible so the bad value can be identified.
+    assert state.attributes["clock_month_day"] == 0x1A22
+
+
+async def test_clock_is_unavailable_for_an_impossible_date(
+    hass: HomeAssistant,
+) -> None:
+    """A well-formed but impossible date leaves the clock unknown."""
+    entry, device = await async_setup_brink_flair(hass, enable=["settings_clock"])
+    entity_id = _entity_id(hass, entry, "settings_clock")
+
+    device.settings.clock_month_day = 0x0230  # 30 February.
+    entry.runtime_data.async_set_updated_data(device)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "unknown"
+
+
+async def test_modbus_link_settings_have_no_writable_entity(
+    hass: HomeAssistant,
+) -> None:
+    """The unit's link settings are not writable on any entity platform."""
+    entry, _ = await async_setup_brink_flair(hass)
+
+    registry = er.async_get(hass)
+    for domain in ("number", "select", "switch"):
+        for suffix in (
+            "modbus_slave_address",
+            "modbus_speed",
+            "modbus_parity",
+        ):
+            assert (
+                registry.async_get_entity_id(
+                    domain, "brink_flair", f"{entry.entry_id}_settings_{suffix}"
+                )
+                is None
+            ), f"settings_{suffix} must not be a writable {domain}"
 
 
 async def test_setup_registers_diagnostic_sensors(hass: HomeAssistant) -> None:

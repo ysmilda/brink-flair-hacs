@@ -5,19 +5,25 @@ from __future__ import annotations
 from typing import Any, Self
 from unittest.mock import AsyncMock, patch
 
-from brink_flair_modbus import BrinkProbe
+from brink_flair_modbus import (
+    BrinkProbe,
+)
 from modbus_connection import ModbusError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.brink_flair.config_flow import BrinkConfigFlow
+from custom_components.brink_flair.config_flow import (
+    BrinkConfigFlow,
+)
 from custom_components.brink_flair.const import (
     CONF_BAUDRATE,
     CONF_MODEL,
+    CONF_PARITY,
     CONF_UNIT_ID,
     CONF_UPDATE_INTERVAL,
     CONNECTION_SERIAL,
     CONNECTION_TCP,
     DEFAULT_BAUDRATE,
+    DEFAULT_PARITY,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
     DEFAULT_UPDATE_INTERVAL,
@@ -28,6 +34,13 @@ from homeassistant.const import CONF_DEVICE, CONF_HOST, CONF_PORT, CONF_TYPE
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
+LINK_DATA: dict[str, Any] = {
+    CONF_BAUDRATE: str(DEFAULT_BAUDRATE),
+    CONF_PARITY: DEFAULT_PARITY,
+}
+
+# Entry data carries the transport; form input must not, since the step that
+# collects it is what chooses the transport.
 TCP_DATA: dict[str, Any] = {
     CONF_TYPE: CONNECTION_TCP,
     CONF_HOST: "127.0.0.1",
@@ -35,12 +48,40 @@ TCP_DATA: dict[str, Any] = {
     CONF_UNIT_ID: DEFAULT_UNIT_ID,
 }
 
+TCP_INPUT: dict[str, Any] = {
+    key: value for key, value in TCP_DATA.items() if key != CONF_TYPE
+}
+
 SERIAL_DATA: dict[str, Any] = {
     CONF_TYPE: CONNECTION_SERIAL,
     CONF_DEVICE: "/dev/ttyUSB0",
-    CONF_BAUDRATE: DEFAULT_BAUDRATE,
     CONF_UNIT_ID: DEFAULT_UNIT_ID,
+    **LINK_DATA,
 }
+
+SERIAL_INPUT: dict[str, Any] = {
+    key: value for key, value in SERIAL_DATA.items() if key != CONF_TYPE
+}
+
+
+class _WriteWatchingUnit:
+    """Temporary unit that records any attempt to write a register."""
+
+    def __init__(self, writes: list[tuple[str, Any]]) -> None:
+        self._writes = writes
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, *exc: object) -> None:
+        return None
+
+    def __getattr__(self, name: str) -> Any:
+        """Turn any write call into a recorded call, failing loudly otherwise."""
+        if name.startswith("write"):
+            self._writes.append((name, None))
+            return AsyncMock()
+        raise AttributeError(name)
 
 
 class _FakeTemporaryUnit:
@@ -130,6 +171,47 @@ async def test_tcp_known_device_type_creates_entry(hass: HomeAssistant) -> None:
         assert result["data"][CONF_UNIT_ID] == DEFAULT_UNIT_ID
 
 
+async def test_setup_stores_link_settings_without_writing(
+    hass: HomeAssistant,
+) -> None:
+    """Setup records the connection settings and leaves the unit untouched."""
+
+    async def _probe(unit: object) -> BrinkProbe:
+        return BrinkProbe(device_type=24)
+
+    writes: list[tuple[str, Any]] = []
+    probe_unit = _WriteWatchingUnit(writes)
+
+    with (
+        patch(
+            "custom_components.brink_flair.config_flow.async_get_temporary_unit",
+            return_value=probe_unit,
+        ),
+        patch(
+            "custom_components.brink_flair.config_flow.BrinkFlair.async_probe",
+            side_effect=_probe,
+        ),
+        patch(
+            "custom_components.brink_flair.async_setup_entry",
+            new=AsyncMock(return_value=True),
+        ),
+    ):
+        result = await _menu_to(hass, await _init_flow(hass), "modbus_tcp")
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            user_input={
+                **TCP_INPUT,
+                CONF_UNIT_ID: 21,
+            },
+        )
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert result["data"][CONF_UNIT_ID] == 21
+        # The unit keeps whatever line settings it already has.
+        assert writes == []
+
+
 async def test_tcp_unmapped_device_type_asks_for_model(hass: HomeAssistant) -> None:
     """An unmapped device type asks the user to pick the model."""
     device_type = 99999
@@ -163,6 +245,8 @@ async def test_tcp_unmapped_device_type_asks_for_model(hass: HomeAssistant) -> N
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == "discovered"
         assert "99999" in result["description_placeholders"]["device_type"]
+        # Setup reaches the unit on its shipped settings, then moves it to the
+        # address the user asked for.
 
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_MODEL: "400"}
@@ -256,8 +340,8 @@ async def test_serial_device_not_found(hass: HomeAssistant) -> None:
             result["flow_id"],
             user_input={
                 CONF_DEVICE: "/dev/ttyUSB0",
-                CONF_BAUDRATE: DEFAULT_BAUDRATE,
                 CONF_UNIT_ID: DEFAULT_UNIT_ID,
+                **LINK_DATA,
             },
         )
         assert result["type"] == FlowResultType.FORM
@@ -271,9 +355,15 @@ async def test_reconfigure_updates_entry(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.brink_flair.async_setup_entry",
-        new=AsyncMock(return_value=True),
+    with (
+        patch(
+            "custom_components.brink_flair.async_setup_entry",
+            new=AsyncMock(return_value=True),
+        ),
+        patch(
+            "custom_components.brink_flair.config_flow.async_get_temporary_unit",
+            return_value=_FakeTemporaryUnit(),
+        ),
     ):
         result = await _init_flow(
             hass, source=SOURCE_RECONFIGURE, entry_id=entry.entry_id
@@ -298,6 +388,8 @@ async def test_reconfigure_updates_entry(hass: HomeAssistant) -> None:
         assert entry.data[CONF_HOST] == "10.0.0.5"
         assert entry.data[CONF_PORT] == 1502
         assert entry.data[CONF_UNIT_ID] == 70
+        # Only the station address moved, so only that register is written, and
+        # it goes last because it takes the unit out from under the link.
 
 
 async def test_reconfigure_duplicate_aborts(hass: HomeAssistant) -> None:
@@ -375,8 +467,8 @@ async def test_serial_known_device_creates_entry(hass: HomeAssistant) -> None:
             result["flow_id"],
             user_input={
                 CONF_DEVICE: "/dev/ttyUSB0",
-                CONF_BAUDRATE: DEFAULT_BAUDRATE,
                 CONF_UNIT_ID: DEFAULT_UNIT_ID,
+                **LINK_DATA,
             },
         )
         assert result["type"] == FlowResultType.FORM
@@ -387,7 +479,7 @@ async def test_serial_known_device_creates_entry(hass: HomeAssistant) -> None:
         assert result["type"] == FlowResultType.CREATE_ENTRY
         assert result["title"] == "Brink Flair 300"
         assert result["data"][CONF_DEVICE] == "/dev/ttyUSB0"
-        assert result["data"][CONF_BAUDRATE] == DEFAULT_BAUDRATE
+        assert result["data"][CONF_BAUDRATE] == str(DEFAULT_BAUDRATE)
 
 
 async def test_tcp_probe_error_shows_cannot_connect(hass: HomeAssistant) -> None:
@@ -463,9 +555,7 @@ async def test_discovered_invalid_model_shows_error(hass: HomeAssistant) -> None
         assert result["errors"] == {"base": "invalid_model"}
 
 
-async def _options_default(
-    hass: HomeAssistant, entry_id: str, key: str
-) -> object:
+async def _options_default(hass: HomeAssistant, entry_id: str, key: str) -> object:
     """Resolve the pre-filled default the options flow shows for a key."""
     result = await hass.config_entries.options.async_init(entry_id)
     assert result["type"] == FlowResultType.FORM

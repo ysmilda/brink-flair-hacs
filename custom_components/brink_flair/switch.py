@@ -1,4 +1,4 @@
-"""Switch platform — bypass boost and the optimistic standby toggle.
+"""Switch platform — writable boolean settings of the Brink Flair unit.
 
 Standby (register 8003) is never read back, so its switch mirrors the last request.
 """
@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, override
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -25,18 +26,35 @@ class BrinkSwitchDescription(SwitchEntityDescription):
     attribute: str | None
 
 
+def _switch(component: str, attribute: str) -> BrinkSwitchDescription:
+    key = f"{component}_{attribute}"
+    return BrinkSwitchDescription(
+        key=key,
+        translation_key=key,
+        component=component,
+        attribute=attribute,
+        entity_category=EntityCategory.CONFIG,
+    )
+
+
 _SWITCHES: tuple[BrinkSwitchDescription, ...] = (
-    BrinkSwitchDescription(
-        key="settings_bypass_boost",
-        translation_key="settings_bypass_boost",
-        component="settings",
-        attribute="bypass_boost",
-    ),
+    _switch("settings", "bypass_boost"),
+    _switch("settings", "display_as_switch"),
+    _switch("settings", "imbalance_allowed"),
+    _switch("settings", "rht_sensor_mode"),
+    _switch("settings", "co2_sensor_mode"),
+    _switch("settings", "cv_connected"),
+    _switch("settings", "digital_input_1_closed"),
+    _switch("settings", "digital_input_2_closed"),
+    _switch("settings", "analogue_input_1_mode"),
+    _switch("settings", "analogue_input_2_mode"),
+    _switch("settings", "geo_exchanger"),
     BrinkSwitchDescription(
         key="standby",
         translation_key="standby",
         component="settings",
         attribute=None,
+        entity_category=EntityCategory.CONFIG,
     ),
 )
 
