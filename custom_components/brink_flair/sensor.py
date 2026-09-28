@@ -397,18 +397,6 @@ _STATUS: tuple[BrinkSensorDescription, ...] = (
     _enum_sensor("status", "frost_status", _FROST),
 )
 
-# The four settings registers the unit splits its clock across. The weekday and
-# seconds register is kept in the raw attributes but deliberately left out of
-# the decoded value: the unit packs it ambiguously, and guessing risks showing
-# a plausible but wrong time.
-_CLOCK_FIELDS: tuple[str, ...] = (
-    "clock_month_day",
-    "clock_year",
-    "clock_time",
-    "clock_day_seconds",
-)
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: BrinkConfigEntry,
@@ -419,89 +407,7 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         BrinkSensor(coordinator, d) for d in (*_MEASUREMENTS, *_STATUS, *_SETTINGS)
     ]
-    entities.append(BrinkClockSensor(coordinator))
     async_add_entities(entities)
-
-
-def _bcd(value: int) -> int | None:
-    """Decode one packed BCD byte, or ``None`` when it is not valid BCD."""
-    tens, ones = divmod(value, 16)
-    return tens * 10 + ones if ones <= 9 else None
-
-
-@dataclass(frozen=True, kw_only=True)
-class BrinkClockDescription(SensorEntityDescription):
-    """Describes the unit clock, assembled from four packed settings registers."""
-
-    key: str = "settings_clock"
-    translation_key: str = "settings_clock"
-    entity_category: EntityCategory = EntityCategory.DIAGNOSTIC
-    entity_registry_enabled_default: bool = False
-
-
-_CLOCK = BrinkClockDescription()
-
-
-class BrinkClockSensor(BrinkEntity, SensorEntity):
-    """The unit's clock, decoded from the four packed settings registers.
-
-    The unit stores the date and time as byte pairs, so the raw values are not
-    meaningful on their own. Decoding is deliberately strict: a register that
-    does not hold a plausible component makes the whole reading unavailable
-    rather than reporting a made-up time, since a wrong clock is worse than a
-    missing one when diagnosing a unit.
-    """
-
-    _attr_has_entity_name = True
-    entity_description = _CLOCK
-
-    def __init__(self, coordinator: BrinkCoordinator) -> None:
-        super().__init__(coordinator, _CLOCK.key, "settings")
-
-    @property
-    @override
-    def native_value(self) -> str | None:
-        """Return the decoded clock as ``YYYY-MM-DD HH:MM``, if it is coherent."""
-        return self._decoded
-
-    @property
-    @override
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Expose the raw registers, so an implausible decode can be inspected."""
-        settings = self._subsystem
-        return {
-            field: getattr(settings, field)
-            for field in _CLOCK_FIELDS
-            if getattr(settings, field, None) is not None
-        }
-
-    @property
-    def _decoded(self) -> str | None:
-        """Return the decoded clock, or ``None`` when it cannot be trusted."""
-        settings = self._subsystem
-        month_day = getattr(settings, "clock_month_day", None)
-        year = getattr(settings, "clock_year", None)
-        clock_time = getattr(settings, "clock_time", None)
-        if month_day is None or year is None or clock_time is None:
-            return None
-
-        month = _bcd(month_day >> 8)
-        day = _bcd(month_day & 0xFF)
-        hour = _bcd(clock_time >> 8)
-        minute = _bcd(clock_time & 0xFF)
-        if month is None or day is None or hour is None or minute is None:
-            return None
-        try:
-            # date and time validate the decoded parts, rejecting impossible
-            # values such as the 30th of February or 25:70.
-            decoded_date = date(int(year), month, day)
-            decoded_time = time(hour, minute)
-        except ValueError:
-            return None
-        return (
-            f"{decoded_date.isoformat()} {decoded_time.isoformat(timespec='minutes')}"
-        )
-
 
 class BrinkSensor(BrinkEntity, SensorEntity):
     """A single value read from a component attribute."""

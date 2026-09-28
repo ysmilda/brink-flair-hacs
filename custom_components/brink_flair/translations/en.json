@@ -477,9 +477,6 @@
             "measurements_total_flow": {
                 "name": "Total flow"
             },
-            "settings_clock": {
-                "name": "Unit clock"
-            },
             "settings_modbus_parity": {
                 "name": "Modbus parity",
                 "state": {
