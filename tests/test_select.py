@@ -41,16 +41,10 @@ async def test_setup_registers_config_selects(hass: HomeAssistant) -> None:
     assert fan_method.state == "constant_flow"
     assert "constant_flow" in fan_method.attributes["options"]
 
-    language = hass.states.get("select.flair_300_unit_language")
-    assert language is not None
-    assert language.state == "english"
-
     digit_in_1 = hass.states.get("select.flair_300_digital_input_1_function")
     assert digit_in_1 is not None
     assert digit_in_1.state == "on"
 
-    assert hass.states.get("select.flair_300_date_format") is not None
-    assert hass.states.get("select.flair_300_time_notation") is not None
     assert hass.states.get("select.flair_300_signal_output_function") is not None
     assert hass.states.get("select.flair_300_external_heater_mode") is not None
     assert hass.states.get("select.flair_300_digital_input_1_supply_fan") is not None

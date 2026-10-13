@@ -7,7 +7,6 @@ from typing import cast, override
 from brink_flair_modbus import (
     BypassMode,
     ControlMode,
-    DateFormat,
     DigitalInputFunction,
     ExternalHeaterMode,
     FanFunction,
@@ -74,9 +73,6 @@ _DESCRIPTIONS: tuple[BrinkSelectDescription, ...] = (
     _select("settings", "digital_input_2_exhaust_fan", FanFunction),
     _select("settings", "geo_valve_default_position", GeoValvePosition),
     _select("settings", "geo_valve_output", GeoValveOutput),
-    _select("settings", "language", Language),
-    _select("settings", "date_format", DateFormat),
-    _select("settings", "time_notation", TimeNotation),
 )
 
 

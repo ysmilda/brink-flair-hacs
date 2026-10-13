@@ -227,13 +227,6 @@
           "flow": "Flow"
         }
       },
-      "settings_date_format": {
-        "name": "Date format",
-        "state": {
-          "dd_mm_yyyy": "DD-MM-YYYY",
-          "mm_dd_yyyy": "MM-DD-YYYY"
-        }
-      },
       "settings_digital_input_1_exhaust_fan": {
         "name": "Digital input 1 exhaust fan",
         "state": {
@@ -338,13 +331,6 @@
           "relay_output_2": "Relay output 2"
         }
       },
-      "settings_language": {
-        "name": "Unit language",
-        "state": {
-          "english": "English",
-          "dutch": "Dutch"
-        }
-      },
       "settings_level": {
         "name": "Ventilation level",
         "state": {
@@ -361,13 +347,6 @@
           "filter_warning": "Filter warning",
           "error_status": "Error status",
           "filter_warning_and_error_status": "Filter warning and error status"
-        }
-      },
-      "settings_time_notation": {
-        "name": "Time notation",
-        "state": {
-          "hour_12": "12-hour",
-          "hour_24": "24-hour"
         }
       }
     },
