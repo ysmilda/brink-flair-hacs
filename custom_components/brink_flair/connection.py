@@ -26,7 +26,7 @@ def params_from_data(data: Mapping[str, Any]) -> ModbusTcpParams | ModbusSerialP
     if data[CONF_TYPE] == CONNECTION_SERIAL:
         return ModbusSerialParams(
             device=data[CONF_DEVICE],
-            baudrate=data.get(CONF_BAUDRATE, DEFAULT_BAUDRATE),
+            baudrate=int(data.get(CONF_BAUDRATE, DEFAULT_BAUDRATE)),
             bytesize=8,
             parity=data.get(CONF_PARITY, DEFAULT_PARITY),
             stopbits=1,
