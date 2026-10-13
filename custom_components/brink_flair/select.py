@@ -41,6 +41,16 @@ class BrinkSelectDescription(SelectEntityDescription):
     enum_type: type[IntEnum]
 
 
+_OPTIONAL_SELECTS: frozenset[str] = frozenset(
+    {
+        "geo_valve_default_position",
+        "geo_valve_output",
+        "external_heater_mode",
+        "signal_output_function",
+    }
+)
+
+
 def _select(
     component: str,
     attribute: str,
@@ -55,6 +65,7 @@ def _select(
         enum_type=enum_type,
         options=[option.name.lower() for option in enum_type],
         entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=attribute not in _OPTIONAL_SELECTS,
     )
 
 

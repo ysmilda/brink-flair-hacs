@@ -59,6 +59,22 @@ def _flow(
     )
 
 
+_OPTIONAL_CONFIG_GAUGES: frozenset[str] = frozenset(
+    {
+        "rht_sensor_sensitivity",
+        "postheater_setpoint",
+    }
+)
+
+
+def _is_optional_config_gauge(attribute: str) -> bool:
+    """Return whether a config gauge configures an optional peripheral."""
+    return (
+        attribute in _OPTIONAL_CONFIG_GAUGES
+        or attribute.startswith(("co2_", "analogue_input_", "geo_"))
+    )
+
+
 def _config_gauge(
     component: str,
     attribute: str,
@@ -68,6 +84,7 @@ def _config_gauge(
     unit: str | None,
     *,
     device_class: NumberDeviceClass | None = None,
+    entity_registry_enabled_default: bool = True,
 ) -> BrinkNumberDescription:
     return BrinkNumberDescription(
         key=f"{component}_{attribute}",
@@ -84,6 +101,7 @@ def _config_gauge(
         ),
         mode=NumberMode.BOX,
         entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=entity_registry_enabled_default,
     )
 
 
@@ -150,7 +168,14 @@ def _descriptions_for(limits: FlowLimits) -> tuple[BrinkNumberDescription, ...]:
     ]
     descriptions.extend(
         _config_gauge(
-            "settings", attribute, minimum, maximum, step, unit, device_class=dc
+            "settings",
+            attribute,
+            minimum,
+            maximum,
+            step,
+            unit,
+            device_class=dc,
+            entity_registry_enabled_default=not _is_optional_config_gauge(attribute),
         )
         for attribute, minimum, maximum, step, unit, dc in _CONFIG_GAUGES
     )

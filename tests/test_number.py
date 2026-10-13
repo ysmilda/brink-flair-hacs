@@ -65,31 +65,8 @@ async def test_setup_registers_config_numbers(hass: HomeAssistant) -> None:
     assert exhaust is not None
     assert exhaust.state == "95"
 
-    co2_low = hass.states.get("number.flair_300_co2_sensor_1_low_level")
-    assert co2_low is not None
-    assert co2_low.state == "800"
-    assert co2_low.attributes["unit_of_measurement"] == "ppm"
-    assert co2_low.attributes["min"] == 400
-    co2_high = hass.states.get("number.flair_300_co2_sensor_4_high_level")
-    assert co2_high is not None
-    assert co2_high.state == "1200"
-
-    voltage = hass.states.get("number.flair_300_analogue_input_1_maximum_voltage")
-    assert voltage is not None
-    assert voltage.state == "10.0"
-    assert voltage.attributes["unit_of_measurement"] == "V"
-    assert voltage.attributes["device_class"] == "voltage"
-
-    postheater = hass.states.get("number.flair_300_post_heater_setpoint")
-    assert postheater is not None
-    assert postheater.state == "20.0"
-    assert postheater.attributes["device_class"] == "temperature"
-
     assert hass.states.get("number.flair_300_imbalance_percentage") is not None
-    assert hass.states.get("number.flair_300_humidity_sensor_sensitivity") is not None
     assert hass.states.get("number.flair_300_switch_default_position") is not None
-    assert hass.states.get("number.flair_300_geo_minimum_temperature") is not None
-    assert hass.states.get("number.flair_300_geo_maximum_temperature") is not None
 
 
 async def test_config_number_is_config_category(hass: HomeAssistant) -> None:
@@ -118,12 +95,12 @@ async def test_config_number_write_reaches_device(hass: HomeAssistant) -> None:
     await hass.services.async_call(
         "number",
         "set_value",
-        {"entity_id": "number.flair_300_co2_sensor_1_low_level", "value": 950},
+        {"entity_id": "number.flair_300_intake_imbalance", "value": 5},
         blocking=True,
     )
 
-    assert device.settings.writes == [("co2_1_low_level", 950.0)]
-    assert hass.states.get("number.flair_300_co2_sensor_1_low_level").state == "950.0"
+    assert device.settings.writes == [("imbalance_intake", 5.0)]
+    assert hass.states.get("number.flair_300_intake_imbalance").state == "5.0"
 
 
 async def test_set_value_writes_and_updates_state(hass: HomeAssistant) -> None:

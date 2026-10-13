@@ -26,6 +26,18 @@ class BrinkSwitchDescription(SwitchEntityDescription):
     attribute: str | None
 
 
+_OPTIONAL_SWITCHES: frozenset[str] = frozenset(
+    {
+        "rht_sensor_mode",
+        "co2_sensor_mode",
+        "analogue_input_1_mode",
+        "analogue_input_2_mode",
+        "geo_exchanger",
+        "display_as_switch",
+    }
+)
+
+
 def _switch(component: str, attribute: str) -> BrinkSwitchDescription:
     key = f"{component}_{attribute}"
     return BrinkSwitchDescription(
@@ -34,6 +46,7 @@ def _switch(component: str, attribute: str) -> BrinkSwitchDescription:
         component=component,
         attribute=attribute,
         entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=attribute not in _OPTIONAL_SWITCHES,
     )
 
 

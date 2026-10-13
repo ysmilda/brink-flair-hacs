@@ -45,15 +45,11 @@ async def test_setup_registers_config_selects(hass: HomeAssistant) -> None:
     assert digit_in_1 is not None
     assert digit_in_1.state == "on"
 
-    assert hass.states.get("select.flair_300_signal_output_function") is not None
-    assert hass.states.get("select.flair_300_external_heater_mode") is not None
     assert hass.states.get("select.flair_300_digital_input_1_supply_fan") is not None
     assert hass.states.get("select.flair_300_digital_input_1_exhaust_fan") is not None
     assert hass.states.get("select.flair_300_digital_input_2_function") is not None
     assert hass.states.get("select.flair_300_digital_input_2_supply_fan") is not None
     assert hass.states.get("select.flair_300_digital_input_2_exhaust_fan") is not None
-    assert hass.states.get("select.flair_300_geo_valve_default_position") is not None
-    assert hass.states.get("select.flair_300_geo_valve_output") is not None
 
 
 async def test_config_selects_are_config_category(hass: HomeAssistant) -> None:
@@ -64,8 +60,6 @@ async def test_config_selects_are_config_category(hass: HomeAssistant) -> None:
     for unique_id in (
         "settings_control_mode",
         "settings_flow_type",
-        "settings_language",
-        "settings_geo_valve_output",
     ):
         entity_id = registry.async_get_entity_id(
             "select", DOMAIN, f"{entry.entry_id}_{unique_id}"

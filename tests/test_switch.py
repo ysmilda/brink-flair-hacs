@@ -40,13 +40,7 @@ async def test_setup_registers_config_switches(hass: HomeAssistant) -> None:
     assert input_2 is not None
     assert input_2.state == "off"
 
-    assert hass.states.get("switch.flair_300_display_acts_as_switch") is not None
-    assert hass.states.get("switch.flair_300_humidity_sensor_mode") is not None
-    assert hass.states.get("switch.flair_300_co2_sensor_mode") is not None
     assert hass.states.get("switch.flair_300_cv_exhaust_connected") is not None
-    assert hass.states.get("switch.flair_300_analogue_input_1_enabled") is not None
-    assert hass.states.get("switch.flair_300_analogue_input_2_enabled") is not None
-    assert hass.states.get("switch.flair_300_geo_heat_exchanger") is not None
 
 
 async def test_config_switches_are_config_category(hass: HomeAssistant) -> None:
